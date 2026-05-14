@@ -1,0 +1,45 @@
+### model
+model_name_or_path: Qwen/Qwen3-14B
+# model_name_or_path: path_to_llm_weights
+trust_remote_code: true
+ 
+### method
+stage: sft
+do_train: true
+finetuning_type: full
+deepspeed: train_yamls/deepspeed/ds_z3_config.json  # choices: [ds_z0_config.json, ds_z2_config.json, ds_z3_config.json]
+ 
+### dataset
+dataset: merged_0403_110k_if_tagged 
+template: qwen
+cutoff_len: 16384
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+ 
+### output
+output_dir: saves/qwen3-14b/sft-merged-110k-claude-4.5-data-if-reasoning-tagged-14b-2e-5-cpt
+logging_steps: 200
+save_steps: 400
+save_total_limit: 3
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: true
+report_to: none  # choices: [none, wandb, tensorboard, swanlab, mlflow]
+ 
+### train
+per_device_train_batch_size: 2 #1
+gradient_accumulation_steps: 8 #16
+learning_rate: 2.0e-5
+num_train_epochs: 3 # 3ep
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true
+ddp_timeout: 180000000
+# resume_from_checkpoint: None 
+ 
+### eval
+# val_size: 0.1
+# per_device_eval_batch_size: 1
+# eval_strategy: steps
+# eval_steps: 500
