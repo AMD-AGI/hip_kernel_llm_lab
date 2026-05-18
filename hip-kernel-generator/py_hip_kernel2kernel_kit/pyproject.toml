@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "py_hip_kernel2kernel_kit"
+version = "0.1.0"
+description = "Production-oriented pipeline for optimizing baseline HIP kernels with iterative LLM feedback."
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "anthropic",
+  "openai",
+  "requests",
+  "tenacity",
+  "torch",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[project.scripts]
+py-hip-kernel2kernel = "py_hip_kernel2kernel_kit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["py_hip_kernel2kernel_kit*"]

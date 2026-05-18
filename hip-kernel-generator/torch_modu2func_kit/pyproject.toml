@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torch_modu2func_kit"
+version = "0.1.0"
+description = "Production-oriented pipeline for converting PyTorch modules into functional equivalents."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "anthropic",
+  "openai",
+  "requests",
+  "tenacity",
+  "torch",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[project.scripts]
+torch-modu2func = "torch_modu2func_kit.cli:main"
+
+[tool.setuptools]
+packages = ["torch_modu2func_kit", "models"]

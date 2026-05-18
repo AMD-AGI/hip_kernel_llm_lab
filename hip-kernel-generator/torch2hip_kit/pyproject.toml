@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torch2hip_kit"
+version = "0.1.0"
+description = "Production-oriented pipeline for converting PyTorch modules into verified HIP kernels."
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+  "anthropic",
+  "openai",
+  "requests",
+  "tenacity",
+  "torch",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[project.scripts]
+torch2hip = "torch2hip_kit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["torch2hip_kit*"]
