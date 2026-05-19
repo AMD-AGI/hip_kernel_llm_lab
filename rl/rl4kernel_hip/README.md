@@ -76,6 +76,13 @@ RL4Kernel/
 │   │   ├── react_multi_turn.sh
 │   │   └── HIP2HIP_TRAINING.md
 │   └── eval/                      # KernelBench eval wrappers
+├── dataset/                       # Data converters, raw data, and generated parquet
+│   ├── hip_kernel_rldataset/      # Raw RL training JSON data
+│   │   ├── rl_data_hard_3k.json
+│   │   └── rl_data_normal_10k.json
+│   ├── AIG-Datasets/              # Local reference HIP/PyTorch dataset tree
+│   ├── hip2hip_parquet/           # Generated Hip2Hip veRL parquet files
+│   └── convert_to_verl_parquet.py # JSON-to-veRL parquet converter
 ├── sandbox/                       # Evaluation client adapters
 ├── HIP_benchmark_kit/             # Benchmark tools & evaluation
 │   ├── eval/                      # Evaluation utilities
@@ -116,17 +123,41 @@ pip install gunicorn
 
 ### Data Preprocessing
 
-Before training, prepare the training data in Parquet format. The scripts require `pandas`, `datasets`, and `pyarrow`:
+Before training, download the raw RL training JSON files and convert them to
+veRL Parquet format. The dataset is hosted in the private Hugging Face dataset
+repo [`amd/rl_data_hip`](https://huggingface.co/datasets/amd/rl_data_hip).
+
+Run the download command from the repository root and place the files under the
+project's expected raw-data directory:
 
 ```bash
-pip install pandas datasets pyarrow
+export HF_TOKEN=...
+huggingface-cli download amd/rl_data_hip \
+  --repo-type dataset \
+  --include 'rl_data_*.json' \
+  --local-dir dataset/hip_kernel_rldataset
+```
+
+After download, the local layout should be:
+
+```text
+dataset/hip_kernel_rldataset/
+├── rl_data_hard_3k.json
+└── rl_data_normal_10k.json
+```
+
+The conversion scripts require `huggingface_hub`, `pandas`, `datasets`, and
+`pyarrow`:
+
+```bash
+pip install huggingface_hub pandas datasets pyarrow
 ```
 
 **For hip2hip full-file training:**
 
 ```bash
 python dataset/convert_to_verl_parquet.py \
-  --input-jsons dataset/hip_kernel_rldataset/rl_data_hard.json dataset/hip_kernel_rldataset/rl_data_normal.json \
+  --input-jsons dataset/hip_kernel_rldataset/rl_data_hard_3k.json dataset/hip_kernel_rldataset/rl_data_normal_10k.json \
   --input-format rl_data \
   --reference-root dataset/AIG-Datasets/v0.1/PyTorch_HIP_kernel_dataset/pytorch_hip_kernel_gpumode \
   --data-source hip2hip-train \
@@ -134,7 +165,7 @@ python dataset/convert_to_verl_parquet.py \
   --target-gpus mi300x \
   --output-contract sample_json_v1 \
   --output-dir dataset/hip2hip_parquet \
-  --output-name rl_data_hard_normal_mixed_hip2hip \
+  --output-name rl_data_hard3k_normal10k_mixed_hip2hip \
   --shuffle --seed 42
 ```
 
