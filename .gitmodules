@@ -1,0 +1,4 @@
+[submodule "rl/rl4kernel_hip"]
+	path = rl/rl4kernel_hip
+	url = https://github.com/AMD-AGI/rl4kernel_hip.git
+	branch = main
