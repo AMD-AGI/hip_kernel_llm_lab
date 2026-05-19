@@ -1,0 +1,40 @@
+tools:
+  - class_name: "verl.tools.hip_kernel_eval_tool.HIPKernelEvalTool"
+    config:
+      type: native
+      server_url: ${oc.env:HIP_KERNEL_TOOL_SERVER_URL,http://localhost:8080}
+      request_timeout_s: 300
+
+    tool_schema:
+      type: "function"
+      function:
+        name: "kernel_eval"
+        description: "Session-aware HIP kernel evaluation tool with compile, correctness, diagnostics, and quick profiling actions."
+        parameters:
+          type: "object"
+          properties:
+            action:
+              type: "string"
+              enum:
+                - "compile_check"
+                - "correctness_quick"
+                - "profile_quick"
+                - "extract_kernel_diagnostics"
+                - "finalize_candidate"
+              description: "Which kernel evaluation action to run."
+            hip_code:
+              type: "string"
+              description: "Optional full HIP candidate code. If provided, it becomes the current candidate before the action runs."
+            kernel_name:
+              type: "string"
+              description: "Optional logical kernel name override for the current candidate."
+            perf_iterations:
+              type: "integer"
+              description: "Optional override for quick performance iterations."
+            compile_timeout_s:
+              type: "integer"
+              description: "Optional compile timeout override in seconds."
+            run_timeout_s:
+              type: "integer"
+              description: "Optional execution timeout override in seconds."
+          required: ["action"]

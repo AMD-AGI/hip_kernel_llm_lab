@@ -1,0 +1,60 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Advanced Micro Devices, Inc. All rights reserved.
+
+[build-system]
+requires = ["scikit-build-core>=0.3.3", "setuptools-scm>=8"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "accordo"
+dynamic = ["version"]
+description = "Accordo: Automated side-by-side correctness validation for GPU kernels"
+authors = [
+    { name = "Muhammad Awad", email = "muhaawad@amd.com" },
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "ml-dtypes",
+    "fastmcp>=2.0.0",
+    "kerneldb @ git+https://github.com/AMDResearch/kerneldb.git@6e0093972be276a51ed2bea963c756caa9324325"
+]
+
+[project.urls]
+Homepage = "https://github.com/AMDResearch/intellikit/tree/main/accordo"
+Repository = "https://github.com/AMDResearch/intellikit/tree/main/accordo"
+Documentation = "https://github.com/AMDResearch/intellikit/blob/main/accordo/README.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[project.scripts]
+accordo = "accordo.cli:main"
+accordo-mcp = "accordo.mcp.server:main"
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+# Persistent build dir so editable install can find the package (pip deletes temp build dir)
+build-dir = "build/{wheel_tag}"
+wheel.packages = ["accordo"]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+
+# ---- setuptools-scm versioning ----
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
+fallback_version = "0.2.0"
+root = ".."
+
+# ---- Ruff configuration ----
+[tool.ruff]
+extend = "../ruff.toml"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "E701", "E731", "E741", "F841", "F401"]

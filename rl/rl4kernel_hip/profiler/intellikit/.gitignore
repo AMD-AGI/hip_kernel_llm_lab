@@ -1,0 +1,37 @@
+build/
+*.log
+*.bc
+*.hipi
+*.o
+*.s
+*.bc
+*.out
+*.txt
+*.hipfb
+!CMakeLists.txt
+
+# Python
+*/__pycache__/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+.eggs/
+*.whl
+
+# Binaries
+vector_add
+vector_add_template
+
+# Editors
+.vscode
+
+# Apptainer images
+*.sif
+
+
+# Resources
+resources/

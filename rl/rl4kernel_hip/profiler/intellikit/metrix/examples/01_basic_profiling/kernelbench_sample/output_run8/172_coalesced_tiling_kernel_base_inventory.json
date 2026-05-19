@@ -1,0 +1,128 @@
+{
+  "phase": "inventory",
+  "effective_arch": "gfx942",
+  "command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/172_coalesced_tiling_kernel_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/172_coalesced_tiling_kernel_base.py --arch gfx942 --warmup-iters 0 --run-iters 5 --gpu-id 0",
+  "kernel_filter": null,
+  "total_kernels": 4,
+  "run_config": {
+    "prewarm_iters": 2,
+    "profile_iters": 5,
+    "gpu_id": 0,
+    "timeout_seconds": 600,
+    "arch_report": {
+      "effective_arch": "gfx942",
+      "mismatches": [],
+      "ambiguous": [
+        "PYTORCH_ROCM_ARCH=gfx90a,gfx942"
+      ],
+      "cleared_flags": [
+        "HIPCC_COMPILE_FLAGS_APPEND"
+      ]
+    },
+    "metrics": [
+      "memory.hbm_bandwidth_utilization",
+      "memory.l2_hit_rate",
+      "memory.coalescing_efficiency",
+      "compute.total_flops"
+    ],
+    "stage_timings_s": {
+      "compile_seconds": 7.5922061710152775,
+      "prewarm_seconds": 7.350145475007594,
+      "inventory_profile_seconds": 8.352513211080804,
+      "filtered_profile_seconds": 42.739068681024946,
+      "total_sample_seconds": 58.44187168008648
+    },
+    "compile_command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/172_coalesced_tiling_kernel_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/172_coalesced_tiling_kernel_base.py --arch gfx942 --warmup-iters 0 --run-iters 0 --compile-only"
+  },
+  "sample": {
+    "sample": "172_coalesced_tiling_kernel_base",
+    "hip_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/172_coalesced_tiling_kernel_base.hip",
+    "functional_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/172_coalesced_tiling_kernel_base.py",
+    "category": "Conv transpose post-process",
+    "note": "ConvTranspose2d pipeline followed by a custom coalesced post-process kernel.",
+    "custom_kernel_names": [
+      "post_process_coalesced"
+    ],
+    "init_inputs": [
+      3,
+      16,
+      3,
+      2,
+      1,
+      1,
+      [
+        16,
+        1,
+        1
+      ],
+      2.0
+    ],
+    "inputs": [
+      {
+        "kind": "tensor",
+        "shape": [
+          128,
+          3,
+          32,
+          32
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu"
+      },
+      2,
+      1,
+      1,
+      2.0
+    ]
+  },
+  "kernels": [
+    {
+      "name": "__amd_rocclr_fillBufferAligned",
+      "dispatch_count": 1,
+      "duration_us": {
+        "min": 10.423,
+        "max": 10.423,
+        "avg": 10.423,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "miopenSp3AsmConv_v30_3_1_gfx9_fp32_f3x2_dilation2",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 34.983,
+        "max": 34.983,
+        "avg": 34.983,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "elementwise_kernel",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 42.384,
+        "max": 42.384,
+        "avg": 42.384,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "post_process_coalesced",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 42.785,
+        "max": 42.785,
+        "avg": 42.785,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    }
+  ]
+}

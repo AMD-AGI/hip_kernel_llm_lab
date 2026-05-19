@@ -1,0 +1,155 @@
+{
+  "phase": "inventory",
+  "effective_arch": "gfx942",
+  "command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.py --arch gfx942 --warmup-iters 0 --run-iters 5 --gpu-id 6",
+  "kernel_filter": null,
+  "total_kernels": 7,
+  "run_config": {
+    "prewarm_iters": 2,
+    "profile_iters": 5,
+    "gpu_id": 6,
+    "timeout_seconds": 600,
+    "arch_report": {
+      "effective_arch": "gfx942",
+      "mismatches": [],
+      "ambiguous": [
+        "PYTORCH_ROCM_ARCH=gfx90a,gfx942"
+      ],
+      "cleared_flags": [
+        "HIPCC_COMPILE_FLAGS_APPEND"
+      ]
+    },
+    "metrics": [
+      "memory.hbm_bandwidth_utilization",
+      "memory.l2_hit_rate",
+      "memory.coalescing_efficiency",
+      "compute.total_flops"
+    ],
+    "stage_timings_s": {
+      "compile_seconds": 33.329085293924436,
+      "prewarm_seconds": 8.213159712031484,
+      "inventory_profile_seconds": 8.74263442796655,
+      "filtered_profile_seconds": 44.04806176899001,
+      "total_sample_seconds": 61.00399409804959
+    },
+    "compile_command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.py --arch gfx942 --warmup-iters 0 --run-iters 0 --compile-only"
+  },
+  "sample": {
+    "sample": "2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base",
+    "hip_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.hip",
+    "functional_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.py",
+    "category": "Dataset sample",
+    "note": "Auto-selected dataset sample 2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.",
+    "custom_kernel_names": [
+      "tanh_maxpool_optimized_kernel"
+    ],
+    "init_inputs": [
+      32,
+      64,
+      4,
+      2,
+      1,
+      8,
+      4
+    ],
+    "inputs": [
+      {
+        "kind": "tensor",
+        "shape": [
+          128,
+          32,
+          32,
+          32
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu"
+      }
+    ]
+  },
+  "kernels": [
+    {
+      "name": "__amd_rocclr_fillBufferAligned",
+      "dispatch_count": 1,
+      "duration_us": {
+        "min": 11.827,
+        "max": 11.827,
+        "avg": 11.827,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "miopenSp3AsmConv_v30_3_1_gfx9_fp32_f3x2_dilation2",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 198.283,
+        "max": 198.283,
+        "avg": 198.283,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "elementwise_kernel",
+      "dispatch_count": 10,
+      "duration_us": {
+        "min": 62.803,
+        "max": 62.803,
+        "avg": 62.803,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "MIOpenBatchNormFwdTrainSpatial",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 228.311,
+        "max": 228.311,
+        "avg": 228.311,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "tanh_maxpool_optimized_kernel",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 61.123,
+        "max": 61.123,
+        "avg": 61.123,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "RowwiseMomentsCUDAKernel",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 15.699,
+        "max": 15.699,
+        "avg": 15.699,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "ComputeFusedParamsCUDAKernel",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 4.489,
+        "max": 4.489,
+        "avg": 4.489,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Local HIP sandbox web/runtime dependencies.
+#
+# Assumes ROCm, hipcc, and ROCm-enabled PyTorch are provided by the base image.
+# Keep FastAPI and Starlette pinned together; Starlette 1.x is incompatible
+# with FastAPI 0.115.x in this server path.
+
+fastapi==0.115.12
+starlette==0.46.2
+pydantic>=2.0,<3
+
+gunicorn>=23,<27
+uvicorn[standard]>=0.30,<0.47
+
+requests>=2.31,<3
+httpx>=0.27,<1
+PyYAML>=6,<7

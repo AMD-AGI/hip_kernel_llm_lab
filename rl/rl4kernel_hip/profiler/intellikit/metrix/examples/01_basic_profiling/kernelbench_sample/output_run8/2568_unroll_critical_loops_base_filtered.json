@@ -1,0 +1,119 @@
+{
+  "phase": "filtered",
+  "effective_arch": "gfx942",
+  "command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2568_unroll_critical_loops_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2568_unroll_critical_loops_base.py --arch gfx942 --warmup-iters 0 --run-iters 5 --gpu-id 4",
+  "kernel_filter": "unrolled_operations_kernel",
+  "total_kernels": 1,
+  "run_config": {
+    "prewarm_iters": 2,
+    "profile_iters": 5,
+    "gpu_id": 4,
+    "timeout_seconds": 600,
+    "arch_report": {
+      "effective_arch": "gfx942",
+      "mismatches": [],
+      "ambiguous": [
+        "PYTORCH_ROCM_ARCH=gfx90a,gfx942"
+      ],
+      "cleared_flags": [
+        "HIPCC_COMPILE_FLAGS_APPEND"
+      ]
+    },
+    "metrics": [
+      "memory.hbm_bandwidth_utilization",
+      "memory.l2_hit_rate",
+      "memory.coalescing_efficiency",
+      "compute.total_flops"
+    ],
+    "stage_timings_s": {
+      "compile_seconds": 33.10528786096256,
+      "prewarm_seconds": 7.885606788913719,
+      "inventory_profile_seconds": 8.799515292979777,
+      "filtered_profile_seconds": 43.57894868403673,
+      "total_sample_seconds": 60.264214762020856
+    },
+    "compile_command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2568_unroll_critical_loops_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2568_unroll_critical_loops_base.py --arch gfx942 --warmup-iters 0 --run-iters 0 --compile-only"
+  },
+  "sample": {
+    "sample": "2568_unroll_critical_loops_base",
+    "hip_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2568_unroll_critical_loops_base.hip",
+    "functional_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2568_unroll_critical_loops_base.py",
+    "category": "Dataset sample",
+    "note": "Auto-selected dataset sample 2568_unroll_critical_loops_base.",
+    "custom_kernel_names": [
+      "unrolled_operations_kernel"
+    ],
+    "init_inputs": [
+      8,
+      16,
+      3,
+      2,
+      1,
+      [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      2.0
+    ],
+    "inputs": [
+      {
+        "kind": "tensor",
+        "shape": [
+          16,
+          8,
+          16,
+          32,
+          32
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu"
+      }
+    ]
+  },
+  "kernels": [
+    {
+      "name": "unrolled_operations_kernel",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 6.03,
+        "max": 6.03,
+        "avg": 6.03,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {
+        "memory.hbm_bandwidth_utilization": {
+          "min": 1.3470462030943553,
+          "max": 1.3470462030943553,
+          "avg": 1.3470462030943553,
+          "count": 1,
+          "unit": "Percent"
+        },
+        "memory.l2_hit_rate": {
+          "min": 50.606680059304146,
+          "max": 50.606680059304146,
+          "avg": 50.606680059304146,
+          "count": 1,
+          "unit": "Percent"
+        },
+        "memory.coalescing_efficiency": {
+          "min": 100.0,
+          "max": 100.0,
+          "avg": 100.0,
+          "count": 1,
+          "unit": "Percent"
+        },
+        "compute.total_flops": {
+          "min": 9843200.0,
+          "max": 9843200.0,
+          "avg": 9843200.0,
+          "count": 1,
+          "unit": "FLOPS"
+        }
+      }
+    }
+  ]
+}

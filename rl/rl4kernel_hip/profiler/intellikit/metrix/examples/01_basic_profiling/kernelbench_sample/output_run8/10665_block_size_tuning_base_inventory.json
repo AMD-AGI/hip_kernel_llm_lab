@@ -1,0 +1,100 @@
+{
+  "phase": "inventory",
+  "effective_arch": "gfx942",
+  "command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/10665_block_size_tuning_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/10665_block_size_tuning_base.py --arch gfx942 --warmup-iters 0 --run-iters 5 --gpu-id 7",
+  "kernel_filter": null,
+  "total_kernels": 3,
+  "run_config": {
+    "prewarm_iters": 2,
+    "profile_iters": 5,
+    "gpu_id": 7,
+    "timeout_seconds": 600,
+    "arch_report": {
+      "effective_arch": "gfx942",
+      "mismatches": [],
+      "ambiguous": [
+        "PYTORCH_ROCM_ARCH=gfx90a,gfx942"
+      ],
+      "cleared_flags": [
+        "HIPCC_COMPILE_FLAGS_APPEND"
+      ]
+    },
+    "metrics": [
+      "memory.hbm_bandwidth_utilization",
+      "memory.l2_hit_rate",
+      "memory.coalescing_efficiency",
+      "compute.total_flops"
+    ],
+    "stage_timings_s": {
+      "compile_seconds": 33.335274820099585,
+      "prewarm_seconds": 10.439521580003202,
+      "inventory_profile_seconds": 11.3849408790702,
+      "filtered_profile_seconds": 55.013401600997895,
+      "total_sample_seconds": 76.8380252289353
+    },
+    "compile_command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/10665_block_size_tuning_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/10665_block_size_tuning_base.py --arch gfx942 --warmup-iters 0 --run-iters 0 --compile-only"
+  },
+  "sample": {
+    "sample": "10665_block_size_tuning_base",
+    "hip_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/10665_block_size_tuning_base.hip",
+    "functional_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/10665_block_size_tuning_base.py",
+    "category": "Dataset sample",
+    "note": "Auto-selected dataset sample 10665_block_size_tuning_base.",
+    "custom_kernel_names": [
+      "module_kernel_optimized"
+    ],
+    "init_inputs": [
+      1024,
+      512
+    ],
+    "inputs": [
+      {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1024
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu"
+      }
+    ]
+  },
+  "kernels": [
+    {
+      "name": "__amd_rocclr_fillBufferAligned",
+      "dispatch_count": 1,
+      "duration_us": {
+        "min": 11.707,
+        "max": 11.707,
+        "avg": 11.707,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "Cijk_Alik_Bljk_S_B_Bias_HA_S_SAV_UserArgs_MT16x16x128_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA2_GRVWB2_GSUAMB_GLS0_ISA942_IU1_K1_LBSPPA512_LBSPPB512_LBSPPM0_LPA8_LPB8_LPM0_LRVW4_LWPMn1_MIAV0_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD4_NTM0_NEPBS16_NLCA1_NLCB1_ONLL1_PGR2_PLR1_PKA1_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS64_WG16_4_4",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 9.084,
+        "max": 9.084,
+        "avg": 9.084,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    },
+    {
+      "name": "module_kernel_optimized",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 2.894,
+        "max": 2.894,
+        "avg": 2.894,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {}
+    }
+  ]
+}

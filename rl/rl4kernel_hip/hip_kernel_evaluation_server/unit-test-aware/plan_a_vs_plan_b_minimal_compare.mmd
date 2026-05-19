@@ -1,0 +1,51 @@
+%%{init: {"theme":"base","flowchart":{"curve":"basis","nodeSpacing":40,"rankSpacing":54},"themeVariables":{
+  "fontFamily":"Inter, PingFang SC, Microsoft YaHei, sans-serif",
+  "background":"#0B1220",
+  "lineColor":"#94A3B8",
+  "textColor":"#E2E8F0",
+  "primaryTextColor":"#E2E8F0"
+},"themeCSS":"
+.cluster-label text{font-size:22px !important;font-weight:800 !important;fill:#E2E8F0 !important;}
+.nodeLabel{font-size:18px !important;line-height:1.35 !important;}
+"}}%%
+flowchart TB
+    S["Shared start<br/>dataset row enters sandbox pipeline"]
+    D{"Only core difference<br/>where does unittest config live?"}
+
+    S --> D
+
+    subgraph A["Plan A"]
+      direction TB
+      A1["Config stays inside<br/>pytorch_functional_code"]
+      A2["Reward and EvalRequest<br/>mostly unchanged"]
+      A3["Codegen reads<br/>get_inputs() from code"]
+      A4["Cache identity follows<br/>functional code hash"]
+      A1 --> A2 --> A3 --> A4
+    end
+
+    subgraph B["Plan B"]
+      direction TB
+      B1["Config becomes explicit<br/>unittest_config schema"]
+      B2["Reward and EvalRequest<br/>carry config field"]
+      B3["Codegen builds inputs<br/>from schema"]
+      B4["Cache identity must include<br/>config hash"]
+      B1 --> B2 --> B3 --> B4
+    end
+
+    D --> A1
+    D --> B1
+
+    classDef shared fill:#0F172A,stroke:#CBD5E1,color:#F8FAFC,stroke-width:2px;
+    classDef decision fill:#172554,stroke:#93C5FD,color:#EFF6FF,stroke-width:2.5px;
+    classDef planA fill:#1E3A8A,stroke:#93C5FD,color:#EFF6FF,stroke-width:2px;
+    classDef planB fill:#065F46,stroke:#6EE7B7,color:#ECFDF5,stroke-width:2px;
+
+    class S shared;
+    class D decision;
+    class A1,A2,A3,A4 planA;
+    class B1,B2,B3,B4 planB;
+
+    style A fill:#082F49,stroke:#38BDF8,stroke-width:2px,color:#E0F2FE
+    style B fill:#052E16,stroke:#4ADE80,stroke-width:2px,color:#DCFCE7
+
+    linkStyle default stroke:#93C5FD,stroke-width:2px
