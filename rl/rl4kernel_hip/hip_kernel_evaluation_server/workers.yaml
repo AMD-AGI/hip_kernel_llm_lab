@@ -1,0 +1,100 @@
+# HIP Kernel Evaluation Cluster Configuration
+# =============================================
+# This file configures the multi-node distributed evaluation cluster.
+#
+# Usage:
+#   1. Edit this file to add your worker nodes
+#   2. Start worker service on each node: ./setup_worker.sh
+#   3. Start master service: ./setup_master.sh --config workers.yaml
+
+# Master Node Configuration
+# -------------------------
+# The master node also participates in kernel evaluation using its local GPUs.
+master:
+  # List of GPU IDs to use on the master node
+  # Set to empty list [] if master should only coordinate (not evaluate)
+  gpus: [0, 1, 2, 3, 4, 5, 6, 7]
+
+# Remote Worker Nodes
+# -------------------
+# List all remote worker nodes here.
+# Each worker should be running the worker service (setup_worker.sh)
+workers:
+  # Example worker configurations:
+  # Uncomment and modify according to your cluster
+  
+  # - host: "10.254.6.41"
+  #   port: 8080
+  #   gpus: 8  # Number of GPUs on this node
+  
+  # - host: "10.254.6.42"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.43"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.44"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.45"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.46"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.47"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.48"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.49"
+  #   port: 8080
+  #   gpus: 8
+  
+  # - host: "10.254.6.50"
+  #   port: 8080
+  #   gpus: 8
+
+# Cluster Settings
+# ----------------
+settings:
+  # Health check interval in seconds
+  # Master periodically checks if workers are alive
+  health_check_interval: 30
+  
+  # Request timeout in seconds
+  # Maximum time to wait for a single kernel evaluation
+  request_timeout: 600
+  
+  # Number of iterations for performance measurement
+  # Higher values give more accurate speedup measurements
+  perf_iterations: 1000
+
+  # Reference cache controls for the master's local workers.
+  # Remote workers still use their own environment-based settings.
+  enable_ref_compile_cache: false
+  enable_ref_golden_cache: false
+  enable_ref_perf_cache: false
+  ref_perf_cache_ttl_s: 3600
+
+  # Near-threshold speedup confirmation.
+  # If a first-pass speedup falls inside [threshold-band, threshold+band],
+  # the evaluator reruns a higher-precision perf-only confirmation and uses
+  # the conservative min(first_pass, confirm_pass) speedup for reward.
+  speedup_confirm_enabled: false
+  speedup_confirm_threshold: 1.05
+  speedup_confirm_band: 0.02
+  speedup_confirm_iterations: 3000
+  
+  # Error log directory
+  # Failed evaluations are logged here for debugging
+  error_log_dir: "./runtime/error_log"
+

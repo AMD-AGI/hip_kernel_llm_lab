@@ -1,0 +1,140 @@
+# Model weights and checkpoints
+checkpoints/*
+!checkpoints/transform_scripts/
+checkpoints/transform_scripts/converted_hf_grpo_models/
+/models/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+
+# Secrets and local environments
+.env
+.env.*
+!.env.example
+
+# Datasets (ignore data files, keep scripts)
+/dataset/*.json
+/dataset/*.parquet
+/dataset/**/*.json
+/dataset/**/*.parquet
+/dataset/**/*.hip
+/dataset/**/*.cu
+/dataset/**/*.py
+!/dataset/*.py
+!/dataset/*.sh
+
+# Dataset subdirectories (not tracked)
+dataset/AIG-Datasets/
+dataset/AIG_Datasets/
+dataset/hip-eval-dataset-customer/
+dataset/hip_validation_dataset/
+dataset/kernel-agent-single-sft-1125/*
+!dataset/kernel-agent-single-sft-1125/convert_to_verl_parquet.py
+dataset/kernel2kernel/
+dataset/hip_kernel_rldataset/
+dataset/hip2hip_parquet/
+
+# Paper and local-only writing assets (not tracked)
+paper_figures/
+z_paper/
+
+# Evaluation server exclusions (experiment dirs, logs, datasets)
+hip_kernel_evaluation_server/__pycache__/
+hip_kernel_evaluation_server/*-Exp*/
+hip_kernel_evaluation_server/cross_node_test/
+hip_kernel_evaluation_server/hip_eval_dataset_kernelbench_25_tasks/
+hip_kernel_evaluation_server/*.log
+hip_kernel_evaluation_server/*.jsonl
+hip_kernel_evaluation_server/show_stats.py
+
+# HIP benchmark generated datasets/outputs
+HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/
+HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_gpumode_50_tasks/
+HIP_benchmark_kit/data/hip_eval_neurlps/
+HIP_benchmark_kit/data/legacy/
+HIP_benchmark_kit/data/hip_evaluation_pub/
+HIP_benchmark_kit/experiments/
+HIP_benchmark_kit/**/analysis_results/
+HIP_benchmark_kit/**/runtime/
+HIP_benchmark_kit/**/local_work/
+HIP_benchmark_kit/**/reference_cache/
+HIP_benchmark_kit/eval/eval_customer_case/predictions/
+HIP_benchmark_kit/eval/analysis_duplication/
+HIP_benchmark_kit/eval/pass_at_K/
+HIP_benchmark_kit/eval/ref_baseline_eval_results/
+HIP_benchmark_kit/gen_hip_kernel/hip_kernel_customer_case/
+HIP_benchmark_kit/gen_hip_kernel/customer_case_code_bkup/
+HIP_benchmark_kit/gen_hip_kernel/old_verl/
+
+# Local analysis/profiling scratch space
+analysis/
+scripts/train/legacy/
+
+# Training logs and outputs
+wandb/
+outputs/
+kernel_novelty_logs/
+training_analysis/
+
+# Compilation cache and object files
+.hip_pch_cache/
+.cache/
+**/.cache/
+*.gch
+*.o
+
+# Error analysis (per user request)
+error_analysis/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# IDE and system files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+core
+core.*
+gpucore.*
+
+# Experiment trackers
+.ray/
+mlruns/
+tensorboard/
+lightning_logs/
+
+# Project-specific excluded files
+analyze_hip_errors.py
+download_model.py
+salloc.sh
+
+# Sandbox runtime artifacts
+hip_kernel_evaluation_server/runtime/
+!hip_kernel_evaluation_server/runtime/README.md
+
+# Profiler source is tracked; generated profiler artifacts stay local.
+profiler/**/.git/
+profiler/**/__pycache__/
+profiler/**/*.pyc
+profiler/**/build/
+profiler/**/*.ninja
+profiler/**/.ninja_*
+profiler/**/*.o
+profiler/**/*.so
+profiler/**/node_modules/
+profiler/**/.astro/
+profiler/**/dist/
+profiler/**/output/
+profiler/**/runs/
+profiler/**/logs/

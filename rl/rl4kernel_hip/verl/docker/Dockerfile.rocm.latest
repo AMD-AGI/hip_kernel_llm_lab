@@ -1,0 +1,412 @@
+#NOTE - Usage: docker build -f Dockerfile.rocm.latest -t verl-0.5:1013 .
+
+# FROM "compute-artifactory.amd.com:5000/rocm-plus-docker/framework/compute-rocm-rel-6.4:94_ubuntu22.04_py3.10_pytorch_release-2.7_575e247"
+# FROM "rlfoundation.azurecr.io/rocm6.3.4:vllm-0.8.5-numa-patch-ubuntu-22.04"
+FROM rlsys/rocm-6.3.4-patch:rocm6.3.4-numa-patch_ubuntu-22.04
+
+SHELL ["/bin/bash", "-ceuxo", "pipefail"]
+
+ENV MAX_JOBS=512
+
+ENV PATH="/usr/local/python3.12/bin:$PATH"
+RUN ln -sf /usr/bin/python3.12 /usr/bin/python && \
+    ln -sf /usr/bin/pip3.12 /usr/bin/pip
+
+############################################
+############################################
+RUN apt-get update
+RUN apt-get install -y pkg-config liblzma-dev
+############################################
+############################################
+
+
+# ###########################################
+# ##########Install TransformerEngine########
+# ###########################################
+# WORKDIR /workspace/
+# # transformer-engine install
+# # https://github.com/ROCm/TransformerEngine
+
+# RUN rm -rf TransformerEngine 
+# RUN git clone --recursive https://github.com/ROCm/TransformerEngine.git
+# WORKDIR /workspace/TransformerEngine
+# RUN git checkout 236178e5
+# # git checkout bb061ade
+# # git checkout 864405c
+
+# # [Added]
+# # 同步并严格按该 commit 记录的子模块快照拉取
+# RUN git submodule sync --recursive \
+#  && git submodule update --init --recursive
+
+
+# ENV NVTE_FRAMEWORK=pytorch 
+# ENV NVTE_ROCM_ARCH=gfx942 
+# ENV NVTE_USE_HIPBLASLT=1
+# ENV NVTE_USE_ROCM=1  
+
+# # export CMAKE_PREFIX_PATH="/opt/rocm:/opt/rocm/hip:/usr/local:/usr:${CMAKE_PREFIX_PATH:-}"
+# ENV CMAKE_PREFIX_PATH="/opt/rocm:/opt/rocm/hip:/usr/local:/usr"
+
+
+# # ENV NVTE_BUILD_MAX_JOBS=$(MAX_JOBS)
+
+# RUN MAX_JOBS=${MAX_JOBS} pip install . -vvv 
+
+# WORKDIR /workspace/
+# ###########################################
+# ###########################################
+# ###########################################
+
+###########################################
+##########Install TransformerEngine########
+###########################################
+WORKDIR /workspace/
+RUN rm -rf TransformerEngine
+RUN git clone --recursive https://github.com/ROCm/TransformerEngine.git
+WORKDIR /workspace/TransformerEngine
+
+# 固定到你指定的 TE 版本
+RUN git checkout 236178e5
+
+# 关键：checkout 之后立刻同步并初始化所有子模块（递归）
+RUN git submodule sync --recursive \
+ && git submodule update --init --recursive
+
+# Sanity check：这个 generate.py 必须存在；不存在就兜底手动植入 CK
+#（某些分支/commit 可能未把 CK 作为子模块，或子模块指向路径变动）
+RUN if [ ! -f "3rdparty/composable_kernel/example/ck_tile/01_fmha/generate.py" ]; then \
+      echo "CK submodule missing. Injecting CK into 3rdparty/composable_kernel ..."; \
+      mkdir -p 3rdparty && rm -rf 3rdparty/composable_kernel && \
+      git clone https://github.com/ROCm/composable_kernel.git 3rdparty/composable_kernel && \
+      cd 3rdparty/composable_kernel && \
+      # 选择一个与 ROCm-6.3.x 协调的稳定版本（包含 example/ck_tile/01_fmha）
+      # 若你的镜像是 6.3.4，可优先 rocm-6.3 分支或 2024 年中后期的 tag
+      # 可换成具体 tag: rocm-6.3 或 v6.3.x；下面示例使用 develop 也可行，但更推荐 rocm-6.3
+      git checkout rocm-6.3 || git checkout develop; \
+      git submodule update --init --recursive; \
+    fi
+
+# 再次确保脚本在位（否则直接失败，方便你排查）
+RUN test -f 3rdparty/composable_kernel/example/ck_tile/01_fmha/generate.py
+
+# 建议补齐 ninja（CMake 默认 -GNinja）
+RUN apt-get update && apt-get install -y ninja-build
+
+# 编译期环境：保留 CK fused-attn 后端
+ENV NVTE_FRAMEWORK=pytorch
+ENV NVTE_ROCM_ARCH=gfx942
+ENV NVTE_USE_HIPBLASLT=1
+ENV NVTE_USE_ROCM=1
+ENV NVTE_FUSED_ATTN=1
+ENV NVTE_FUSED_ATTN_CK=1
+# AOTriton 也可同时保留
+ENV NVTE_FUSED_ATTN_AOTRITON=1
+
+# 让 CMake 能找到 ROCm
+ENV CMAKE_PREFIX_PATH="/opt/rocm:/opt/rocm/hip:/usr/local:/usr"
+
+# （可选）把 CMP0135 设为 NEW，避免 ExternalProject 时间戳警告
+ENV CMAKE_ARGS="-DCMAKE_POLICY_DEFAULT_CMP0135=NEW"
+
+# 一些 CK/hip 编译链在 6.3 上对目标架构更“敏感”，提前告诉 hipcc
+#（若你稍前就设置了 HIPCC_COMPILE_FLAGS_APPEND/AMDGPU_TARGETS，可复用）
+ENV HIPCC_COMPILE_FLAGS_APPEND="--offload-arch=gfx942"
+ENV AMDGPU_TARGETS=gfx942
+
+# 重要：MAX_JOBS 的写法要用 ${MAX_JOBS} 而不是 $(MAX_JOBS)
+# 并建议关闭 build isolation，避免 pip build 隔离掉我们注入的 3rdparty/CK
+RUN MAX_JOBS=${MAX_JOBS} pip install --no-build-isolation . -vvv
+
+###########################################
+###########################################
+###########################################
+
+
+
+
+####################################################################################
+################Install vllm - sglang require vllm 0.6.7 dependency#################
+####################################################################################
+#### Require vllm 0.6.7 - checkout 113274a0
+WORKDIR /workspace/
+RUN rm -rf vllm
+RUN pip uninstall -y vllm
+# Refer to here (down-grade vllm to 0.6.3): https://docs.vllm.ai/en/v0.6.3/getting_started/amd-installation.html
+RUN git clone https://github.com/ROCm/vllm.git
+# git clone https://github.com/vllm-project/vllm.git
+WORKDIR /workspace/vllm
+RUN git checkout 113274a0
+ENV PYTORCH_ROCM_ARCH="gfx90a;gfx942"
+#ENV MAX_JOBS=512
+ENV MAX_JOBS=${MAX_JOBS}
+RUN pip install "boto3>=1.26.0"
+RUN pip install setuptools_scm
+# will add src into py. You can delete the repo
+RUN python3 setup.py install
+WORKDIR /workspace/
+####################################################################################
+####################################################################################
+####################################################################################
+
+
+
+###########################################
+############For hack docker################
+###########################################
+RUN pip install setuptools==75.8.0
+###########################################
+###########################################
+###########################################
+
+
+
+###########################################
+############build sgalng###################
+###########################################
+# Set environment variables
+ENV BASE_DIR=/sgl-workspace
+ENV BUILD_TYPE=all
+ENV SGL_REPO=https://github.com/sgl-project/sglang
+ENV SGL_BRANCH=v0.4.6.post5
+ENV TRITON_REPO=https://github.com/ROCm/triton.git
+ENV TRITON_COMMIT=improve_fa_decode_3.0.0
+ENV AITER_REPO=https://github.com/ROCm/aiter.git
+ENV AITER_COMMIT=v0.1.2
+# v0.1.2 version - commit id: 9d11f47
+# ENV AITER_COMMIT=9d11f47
+
+ENV HIP_FORCE_DEV_KERNARG=1
+ENV HSA_NO_SCRATCH_RECLAIM=1
+ENV SGLANG_SET_CPU_AFFINITY=1
+ENV SGLANG_ALLOW_OVERWRITE_LONGER_CONTEXT_LEN=1
+ENV NCCL_MIN_NCHANNELS=112
+ENV MOE_PADDING=1
+ENV VLLM_FP8_PADDING=1
+ENV VLLM_FP8_ACT_PADDING=1
+ENV VLLM_FP8_WEIGHT_PADDING=1
+ENV VLLM_FP8_REDUCE_CONV=1
+ENV TORCHINDUCTOR_MAX_AUTOTUNE=1
+ENV TORCHINDUCTOR_MAX_AUTOTUNE_POINTWISE=1
+ENV HIPCC_COMPILE_FLAGS_APPEND="--offload-arch=gfx942"
+ENV AMDGPU_TARGETS=gfx942
+ENV ROCM_ARCH=gfx942
+ENV PYTORCH_ROCM_ARCH="gfx90a;gfx942"
+
+# Switch to working directory
+WORKDIR /sgl-workspace
+
+# Clean and create directory
+RUN rm -rf /sgl-workspace && mkdir -p /sgl-workspace
+
+# Clone and build sglang
+RUN git clone ${SGL_REPO} \
+    && cd sglang \
+    && git checkout ${SGL_BRANCH} || echo "Using default branch" \
+    && cd sgl-kernel \
+    && rm -f pyproject.toml \
+    && mv pyproject_rocm.toml pyproject.toml \
+    && python setup_rocm.py install \
+    && cd .. \
+    && if [ "$BUILD_TYPE" = "srt" ]; then \
+         python -m pip --no-cache-dir install -e "python[srt_hip]"; \
+       else \
+         python -m pip --no-cache-dir install -e "python[all_hip]"; \
+       fi \
+    && cd /sgl-workspace \
+    && cp -r /sgl-workspace/sglang /sglang \
+    && python -m pip cache purge
+
+# Install common Python packages
+RUN pip install IPython orjson python-multipart torchao pybind11
+
+# Rebuild Triton
+RUN pip uninstall -y triton || true \
+    && git clone ${TRITON_REPO} \
+    && cd triton \
+    && git checkout ${TRITON_COMMIT} \
+    && cd python \
+    && python3 setup.py install \
+    && cd /sgl-workspace
+
+
+# ENV HIPCC_COMPILE_FLAGS_APPEND="--offload-arch=gfx942 --amdgpu-lower-module-lds-strategy=1"
+# ENV HIPCC_COMPILE_FLAGS_APPEND="--offload-arch=gfx942"
+
+# Build aiter
+#version: Commit 9d11f47
+    # && git checkout ${AITER_COMMIT} \
+RUN pip uninstall -y aiter || true
+RUN git clone ${AITER_REPO} \
+    && cd aiter \
+    && git checkout ${AITER_COMMIT} \
+    && git submodule sync \
+    && git submodule update --init --recursive \
+    && PREBUILD_KERNELS=1 GPU_ARCHS=gfx942 python3 setup.py install \
+    && cd /sgl-workspace
+    # && PREBUILD_KERNELS=1 GPU_ARCHS=gfx942 python3 setup.py develop \
+    # && PREBUILD_KERNELS=1 GPU_ARCHS=gfx942 python3 setup.py develop \
+
+# Copy MI300X config 
+RUN find /sgl-workspace/sglang/python/sglang/srt/layers/quantization/configs/ \
+         /sgl-workspace/sglang/python/sglang/srt/layers/moe/fused_moe_triton/configs/ \
+         -type f -name '*MI300X*' | \
+         xargs -I {} sh -c 'vf_config=$(echo "$1" | sed "s/MI300X/MI300X_VF/"); cp "$1" "$vf_config"' -- {}
+
+# Environment setup complete.
+RUN echo "Environment setup complete."
+
+WORKDIR /workspace/
+###########################################
+###########################################
+###########################################
+
+
+
+
+
+
+###########################################
+###############vllm v0.8.5#################
+###########################################
+# ENV GITHUB_USERNAME=yushengsu-thu
+# ENV GITHUB_MAIL=yushengsu@gmail.com
+
+# RUN git config --global user.name "${GITHUB_USERNAME}" \
+#     && git config --global user.email "${GITHUB_MAIL}" 
+
+WORKDIR /workspace/
+
+ENV VLLM_TARGET_DEVICE=rocm 
+ENV ROCM_PATH=/opt/rocm 
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.8.5.dev
+
+# Find the repo path in: DockerFile/Dockerfile.rocm_yang
+# RUN git clone https://github.com/RLFoundation/vllm-patch.git
+RUN pip uninstall -y vllm || true
+RUN rm -rf vllm-patch
+RUN git clone https://github.com/RLFoundation/vllm-patch.git \
+    && cd vllm-patch \
+    && git checkout v0.8.5-sleep-numa \
+    && rm -rf build/ dist/ *.egg-info \
+    && ln -sf /opt/rocm/lib/libamdhip64.so /usr/lib/libamdhip64.so \
+    && SETUPTOOLS_SCM_PRETEND_VERSION=0.8.5.dev PYTORCH_ROCM_ARCH="gfx90a;gfx942" MAX_JOBS=${MAX_JOBS} python3 setup.py install
+    # RUN SETUPTOOLS_SCM_PRETEND_VERSION=0.8.5.dev PYTORCH_ROCM_ARCH="gfx90a;gfx942" MAX_JOBS=${MAX_JOBS} python3 setup.py develop
+
+WORKDIR /workspace/
+###########################################
+###########################################
+###########################################
+
+
+
+
+#########################################
+#### Install megatron-core###############
+#########################################
+RUN pip uninstall -y megatron-core && \
+    git clone https://github.com/yushengsu-thu/Megatron-LM-amd_version.git && \
+    cd Megatron-LM-amd_version && \
+    pip install -vvv -e . && \
+    cd /workspace/
+#########################################
+#########################################
+#########################################
+
+
+
+
+#######################################
+################apex###################
+#######################################
+WORKDIR /workspace/
+RUN pip uninstall -y apex && \
+    git clone https://github.com/ROCm/apex.git && \
+    cd apex && \
+    python setup.py install && \
+    cd /workspace/ 
+#######################################
+#######################################
+#######################################
+
+
+
+
+################################################################################
+###########################Add torch_memory_saver###############################
+################################################################################
+# 修复 hipcc/clang++ 参数问题：创建 clang++ wrapper 过滤错误的分号分隔参数
+RUN cp /opt/rocm/lib/llvm/bin/clang++ /opt/rocm/lib/llvm/bin/clang++.original && \
+    cat > /opt/rocm/lib/llvm/bin/clang++ <<'EOF'
+#!/bin/bash
+args=()
+for arg in "$@"; do
+    case "$arg" in
+        --amdgpu-target=*';'*)
+            continue
+            ;;
+    esac
+    args+=("$arg")
+done
+exec /opt/rocm/lib/llvm/bin/clang++.original "${args[@]}"
+EOF
+RUN chmod +x /opt/rocm/lib/llvm/bin/clang++
+
+# 注意：不要在环境变量中使用分号分隔 GPU 架构！
+# 错误: HIPCC_COMPILE_FLAGS_APPEND="--amdgpu-target=gfx90a;gfx942"
+# 正确: 只指定一个架构，或在代码层面通过 --offload-arch 指定
+ENV HIPCC_COMPILE_FLAGS_APPEND="-D__HIP_PLATFORM_AMD__"
+ENV CFLAGS="-D__HIP_PLATFORM_AMD__"
+ENV CXXFLAGS="-D__HIP_PLATFORM_AMD__"
+RUN pip install "git+https://github.com/YangWang92/torch_memory_saver_numa.git@numa"
+################################################################################
+################################################################################
+################################################################################
+
+
+
+########################################
+######Install ray#######################
+########################################
+# need to add this patch: https://github.com/ray-project/ray/pull/53531/files
+RUN pip uninstall ray -y
+RUN pip install "ray[data,train,tune,serve]>=2.47.0" 
+########################################
+########################################
+########################################
+
+
+
+##########################################
+#######Install other dependencies#########
+##########################################
+RUN pip install "tensordict==0.6.2" --no-deps && \
+    pip install accelerate \
+    codetiming \
+    datasets \
+    dill \
+    hydra-core \
+    liger-kernel \
+    numpy \
+    pandas \
+    peft \
+    "pyarrow>=15.0.0" \
+    pylatexenc \
+    torchdata \
+    wandb \
+    orjson \
+    pybind11
+    
+WORKDIR /workspace/
+RUN git clone https://github.com/volcengine/verl.git && \
+    cd verl && \
+    pip install -e . 
+##########################################
+##########################################
+##########################################
+
+
+
+WORKDIR /workspace/
+
+CMD ["/usr/bin/bash"]

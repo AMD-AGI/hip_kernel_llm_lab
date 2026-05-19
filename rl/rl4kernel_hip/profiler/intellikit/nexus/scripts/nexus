@@ -1,0 +1,122 @@
+#!/bin/bash
+################################################################################
+# MIT License
+#
+# Copyright (c) 2025 Advanced Micro Devices, Inc. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+################################################################################
+
+
+# Default values
+LOG_LEVEL=0
+OUTPUT_FILE=""
+FULL_TRACE_DUMP_FILE=""
+EXTRA_SEARCH_PREFIX=""
+GDB=false
+APP_COMMAND=()
+
+# Print usage
+usage() {
+  echo "Usage: $0 [-v[v[v[v]]]] [--output <file>] [--search-prefix <prefixes>] [--gdb] <command...>"
+  echo "Short options: -v, -o, -s, -g, -h"
+  echo ""
+  echo "Examples:"
+  echo "  $0 -vv -o out.json -s './test' ./vector_add"
+  echo "  $0 python test/add.py"
+  exit 1
+}
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -v*)
+      LOG_LEVEL=${#1}
+      shift
+      ;;
+    --output|-o)
+      OUTPUT_FILE="$2"
+      shift 2
+      ;;
+    --search-prefix|-s)
+      EXTRA_SEARCH_PREFIX="$2"
+      shift 2
+      ;;
+    --full-trace-dump-file|-f)
+      FULL_TRACE_DUMP_FILE="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      ;;
+    --gdb|-g)
+      GDB=true
+      shift
+      ;;
+    --*|-*)
+      echo "Unknown option: $1"
+      usage
+      ;;
+    *)
+      APP_COMMAND=("$@")
+      break
+      ;;
+  esac
+done
+
+if [ ${#APP_COMMAND[@]} -eq 0 ]; then
+  echo "Error: No application command provided."
+  usage
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NEXUS_LIB_PATH="${SCRIPT_DIR}/../build/lib/libnexus.so"
+
+export HSA_TOOLS_LIB="${NEXUS_LIB_PATH}"
+export NEXUS_LOG_LEVEL="$LOG_LEVEL"
+
+if [ -n "$OUTPUT_FILE" ]; then
+  export NEXUS_OUTPUT_FILE="$OUTPUT_FILE"
+else
+  # Find the stem of the APP_COMMAND first argument
+filename="${APP_COMMAND[0]}"
+  stem="$(basename "$filename" .${filename##*.})"
+  export NEXUS_OUTPUT_FILE="${stem}.json"
+fi
+
+if [ -n "$FULL_TRACE_DUMP_FILE" ]; then
+  echo "Dumping full trace to $FULL_TRACE_DUMP_FILE"
+  export NEXUS_KERNELS_DUMP_FILE="$FULL_TRACE_DUMP_FILE"
+fi
+
+if [ -n "$EXTRA_SEARCH_PREFIX" ]; then
+  echo "Setting extra search prefix to $EXTRA_SEARCH_PREFIX"
+  export NEXUS_EXTRA_SEARCH_PREFIX="$EXTRA_SEARCH_PREFIX"
+fi
+
+# Triton Environment Variables
+export TRITON_ALWAYS_COMPILE=1
+export TRITON_DISABLE_LINE_INFO=0
+
+echo "Running: ${APP_COMMAND[*]}"
+if [ "$GDB" = true ]; then
+  gdb -ex run --args "${APP_COMMAND[@]}"
+else
+  exec "${APP_COMMAND[@]}"
+fi

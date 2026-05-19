@@ -1,0 +1,2 @@
+"""HIP benchmark kit package."""
+

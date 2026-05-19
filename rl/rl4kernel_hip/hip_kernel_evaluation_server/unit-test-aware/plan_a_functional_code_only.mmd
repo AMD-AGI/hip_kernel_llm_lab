@@ -1,0 +1,70 @@
+%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"curve":"basis","nodeSpacing":42,"rankSpacing":56},"themeVariables":{
+  "fontFamily":"Inter, PingFang SC, Microsoft YaHei, sans-serif",
+  "background":"#0B1220",
+  "lineColor":"#94A3B8",
+  "textColor":"#E2E8F0",
+  "primaryTextColor":"#E2E8F0"
+},"themeCSS":"
+.cluster-label text{font-size:24px !important;font-weight:800 !important;fill:#E2E8F0 !important;}
+.cluster-label span{font-size:24px !important;font-weight:800 !important;color:#E2E8F0 !important;}
+.nodeLabel{font-size:18px !important;line-height:1.4 !important;}
+"}}%%
+flowchart TB
+    subgraph D0["<span style='font-size:26px;font-weight:800;'>Plan A: Only Rewrite Functional Code</span>"]
+      direction TB
+
+      subgraph D1["<span style='font-size:22px;font-weight:800;'>Dataset Layer</span>"]
+        direction TB
+        A0["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Real training data</b><br/><span style='font-family:monospace'>rl_data_v01_mi325x_react_verl.parquet</span></div>"]
+        A1["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Parquet rewrite</b><br/>clone rows by test case<br/>rewrite <span style='font-family:monospace'>reward_model.ground_truth.pytorch_functional_code</span></div>"]
+        A2["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Config remains hidden in code</b><br/>shape, tensor size, init inputs stay inside<br/><span style='font-family:monospace'>get_inputs()</span> and <span style='font-family:monospace'>get_init_inputs()</span></div>"]
+        A0 --> A1 --> A2
+      end
+
+      subgraph D2["<span style='font-size:22px;font-weight:800;'>Request Path</span>"]
+        direction TB
+        A3["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Reward layer</b><br/><span style='font-family:monospace'>reward.py</span> and <span style='font-family:monospace'>reward_batch.py</span><br/>forward code string unchanged</div>"]
+        A4["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>EvalRequest unchanged</b><br/>no new schema field<br/>existing request payload is enough</div>"]
+        A2 --> A3 --> A4
+      end
+
+      subgraph D3["<span style='font-size:22px;font-weight:800;'>Sandbox Execution</span>"]
+        direction TB
+        A5["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Codegen unchanged</b><br/>append functional code into generated<br/>sandbox unittest driver</div>"]
+        A6["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Runtime executes test</b><br/>call <span style='font-family:monospace'>get_inputs()</span><br/>compile candidate, run candidate, compare, benchmark</div>"]
+        A4 --> A5 --> A6
+      end
+
+      subgraph D4["<span style='font-size:22px;font-weight:800;'>Cache Behavior</span>"]
+        direction TB
+        A7["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Cache identity reused</b><br/>different functional code naturally produces<br/>different golden and perf cache keys</div>"]
+        A8["<div style='width:320px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Operational meaning</b><br/>1 config = 1 parquet row = 1 request = 1 benchmark case</div>"]
+        A6 --> A7 --> A8
+      end
+    end
+
+    N1["<div style='width:360px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Files usually touched</b><br/><span style='font-family:monospace'>dataset/kernel-agent-single-sft-1125/convert_to_verl_parquet.py</span><br/>or a new parquet postprocess script in the same directory</div>"]
+    N2["<div style='width:360px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Files usually not touched</b><br/><span style='font-family:monospace'>reward/reward.py</span><br/><span style='font-family:monospace'>reward/reward_batch.py</span><br/><span style='font-family:monospace'>sandbox_core/protocol.py</span><br/><span style='font-family:monospace'>sandbox_core/codegen.py</span><br/><span style='font-family:monospace'>sandbox_core/reference.py</span><br/><span style='font-family:monospace'>sandbox_core/cache.py</span></div>"]
+
+    A1 -.-> N1
+    A7 -.-> N2
+
+    classDef dataset fill:#1E3A8A,stroke:#93C5FD,color:#EFF6FF,stroke-width:2px;
+    classDef request fill:#065F46,stroke:#6EE7B7,color:#ECFDF5,stroke-width:2px;
+    classDef runtime fill:#7C3AED,stroke:#C4B5FD,color:#F5F3FF,stroke-width:2px;
+    classDef cache fill:#9A3412,stroke:#FDBA74,color:#FFF7ED,stroke-width:2px;
+    classDef note fill:#111827,stroke:#6B7280,color:#D1D5DB,stroke-width:1.5px;
+
+    class A0,A1,A2 dataset;
+    class A3,A4 request;
+    class A5,A6 runtime;
+    class A7,A8 cache;
+    class N1,N2 note;
+
+    style D1 fill:#082F49,stroke:#38BDF8,stroke-width:2px,color:#E0F2FE
+    style D2 fill:#052E16,stroke:#4ADE80,stroke-width:2px,color:#DCFCE7
+    style D3 fill:#3B0764,stroke:#C084FC,stroke-width:2px,color:#F3E8FF
+    style D4 fill:#431407,stroke:#FB923C,stroke-width:2px,color:#FFEDD5
+    style D0 fill:#0B1220,stroke:#94A3B8,stroke-width:0px,color:#E2E8F0
+
+    linkStyle default stroke:#93C5FD,stroke-width:2px

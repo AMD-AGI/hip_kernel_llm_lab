@@ -1,0 +1,73 @@
+%%{init: {"theme":"base","flowchart":{"htmlLabels":true,"curve":"basis","nodeSpacing":42,"rankSpacing":56},"themeVariables":{
+  "fontFamily":"Inter, PingFang SC, Microsoft YaHei, sans-serif",
+  "background":"#0B1220",
+  "lineColor":"#94A3B8",
+  "textColor":"#E2E8F0",
+  "primaryTextColor":"#E2E8F0"
+},"themeCSS":"
+.cluster-label text{font-size:24px !important;font-weight:800 !important;fill:#E2E8F0 !important;}
+.cluster-label span{font-size:24px !important;font-weight:800 !important;color:#E2E8F0 !important;}
+.nodeLabel{font-size:18px !important;line-height:1.4 !important;}
+"}}%%
+flowchart TB
+    subgraph E0["<span style='font-size:26px;font-weight:800;'>Plan B: Introduce Explicit Unittest Config Schema</span>"]
+      direction TB
+
+      subgraph E1["<span style='font-size:22px;font-weight:800;'>Dataset Layer</span>"]
+        direction TB
+        B0["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Real training data</b><br/><span style='font-family:monospace'>rl_data_v01_mi325x_react_verl.parquet</span></div>"]
+        B1["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Schema upgrade in parquet</b><br/>write structured<br/><span style='font-family:monospace'>reward_model.ground_truth.unittest_config</span></div>"]
+        B2["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Config becomes explicit</b><br/>shape, tensor size, dtype, init inputs and other knobs become first-class fields</div>"]
+        B0 --> B1 --> B2
+      end
+
+      subgraph E2["<span style='font-size:22px;font-weight:800;'>Request Path</span>"]
+        direction TB
+        B3["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Reward layer upgrade</b><br/><span style='font-family:monospace'>reward.py</span> and <span style='font-family:monospace'>reward_batch.py</span><br/>forward <span style='font-family:monospace'>unittest_config</span></div>"]
+        B4["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>EvalRequest upgrade</b><br/>add structured field<br/><span style='font-family:monospace'>unittest_config: Dict[str, Any]</span></div>"]
+        B2 --> B3 --> B4
+      end
+
+      subgraph E3["<span style='font-size:22px;font-weight:800;'>Sandbox Execution</span>"]
+        direction TB
+        B5["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Codegen upgrade</b><br/>generate or override<br/><span style='font-family:monospace'>get_inputs()</span> and <span style='font-family:monospace'>get_init_inputs()</span><br/>from config schema</div>"]
+        B6["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Runtime executes explicit case</b><br/>materialize tensors from schema<br/>compile, run, compare, benchmark</div>"]
+        B4 --> B5 --> B6
+      end
+
+      subgraph E4["<span style='font-size:22px;font-weight:800;'>Cache And Compatibility</span>"]
+        direction TB
+        B7["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Cache identity must change</b><br/>hash <span style='font-family:monospace'>unittest_config</span> into both<br/>golden and perf reference keys</div>"]
+        B8["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Schema migration work</b><br/>bump cache schema version<br/>keep prewarm and client adapter aligned</div>"]
+        B9["<div style='width:330px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Operational meaning</b><br/>config is queryable, auditable and safer<br/>for long-term benchmark governance</div>"]
+        B6 --> B7 --> B8 --> B9
+      end
+    end
+
+    W1["<div style='width:390px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Critical failure mode</b><br/>if <span style='font-family:monospace'>unittest_config</span> is not included in cache identity,<br/>different shapes or tensor settings will silently reuse the wrong golden or perf artifacts</div>"]
+    N1["<div style='width:390px;padding:10px 12px;line-height:1.45;text-align:left;'><b>Files usually touched</b><br/><span style='font-family:monospace'>dataset/kernel-agent-single-sft-1125/convert_to_verl_parquet.py</span><br/><span style='font-family:monospace'>reward/reward.py</span><br/><span style='font-family:monospace'>reward/reward_batch.py</span><br/><span style='font-family:monospace'>sandbox/client_adapter.py</span><br/><span style='font-family:monospace'>sandbox_core/protocol.py</span><br/><span style='font-family:monospace'>sandbox_core/codegen.py</span><br/><span style='font-family:monospace'>sandbox_core/reference.py</span><br/><span style='font-family:monospace'>sandbox_core/cache.py</span><br/><span style='font-family:monospace'>server_tools/prewarm_reference_cache.py</span><br/><span style='font-family:monospace'>sandbox_tests/*</span></div>"]
+
+    B7 --> W1
+    B4 -.-> N1
+
+    classDef dataset fill:#1E3A8A,stroke:#93C5FD,color:#EFF6FF,stroke-width:2px;
+    classDef request fill:#065F46,stroke:#6EE7B7,color:#ECFDF5,stroke-width:2px;
+    classDef runtime fill:#7C3AED,stroke:#C4B5FD,color:#F5F3FF,stroke-width:2px;
+    classDef cache fill:#9A3412,stroke:#FDBA74,color:#FFF7ED,stroke-width:2px;
+    classDef warning fill:#7F1D1D,stroke:#FCA5A5,color:#FEF2F2,stroke-width:2px;
+    classDef note fill:#111827,stroke:#6B7280,color:#D1D5DB,stroke-width:1.5px;
+
+    class B0,B1,B2 dataset;
+    class B3,B4 request;
+    class B5,B6 runtime;
+    class B7,B8,B9 cache;
+    class W1 warning;
+    class N1 note;
+
+    style E1 fill:#082F49,stroke:#38BDF8,stroke-width:2px,color:#E0F2FE
+    style E2 fill:#052E16,stroke:#4ADE80,stroke-width:2px,color:#DCFCE7
+    style E3 fill:#3B0764,stroke:#C084FC,stroke-width:2px,color:#F3E8FF
+    style E4 fill:#431407,stroke:#FB923C,stroke-width:2px,color:#FFEDD5
+    style E0 fill:#0B1220,stroke:#94A3B8,stroke-width:0px,color:#E2E8F0
+
+    linkStyle default stroke:#93C5FD,stroke-width:2px

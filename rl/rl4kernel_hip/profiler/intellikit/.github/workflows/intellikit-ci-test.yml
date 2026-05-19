@@ -1,0 +1,132 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Advanced Micro Devices, Inc. All rights reserved.
+
+name: Intellikit CI Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.build-matrix.outputs.packages }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            accordo:
+              - 'accordo/**'
+            kerncap:
+              - 'kerncap/**'
+            linex:
+              - 'linex/**'
+            metrix:
+              - 'metrix/**'
+            nexus:
+              - 'nexus/**'
+            rocm_mcp:
+              - 'rocm_mcp/**'
+            uprof_mcp:
+              - 'uprof_mcp/**'
+            infra:
+              - '.github/**'
+              - 'apptainer/**'
+              - 'docker/**'
+              - 'install/**'
+              - 'pyproject.toml'
+
+      - name: Build package matrix
+        id: build-matrix
+        run: |
+          # Infra changes or non-PR events → test everything
+          if [[ "${{ steps.filter.outputs.infra }}" == "true" || "${{ github.event_name }}" != "pull_request" ]]; then
+            echo 'packages=["accordo","kerncap","linex","metrix","nexus","rocm_mcp","uprof_mcp"]' >> "$GITHUB_OUTPUT"
+          else
+            CHANGES='${{ steps.filter.outputs.changes }}'
+            echo "packages=${CHANGES}" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-container-image:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.packages != '[]'
+    runs-on: [self-hosted, mi3xx]
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Apptainer (if not available)
+        run: |
+          if ! command -v apptainer &> /dev/null; then
+            echo "Apptainer not found, installing..."
+            apt-get update && apt-get install -y software-properties-common
+            add-apt-repository -y ppa:apptainer/ppa
+            apt-get update && apt-get install -y apptainer
+          else
+            echo "Apptainer already available"
+          fi
+
+      - name: Build Intellikit container
+        run: |
+          bash .github/scripts/container_build.sh
+
+  test-installation:
+    name: Test ${{ matrix.install_method }} - ${{ matrix.package }}
+    needs: [detect-changes, build-container-image]
+    runs-on: [self-hosted, mi3xx]
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.detect-changes.outputs.packages) }}
+        install_method: [editable, non-editable, github]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Test ${{ matrix.install_method }} install - ${{ matrix.package }}
+        run: |
+          # Determine the correct SHA to use for GitHub installs
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            GIT_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            GIT_SHA="${{ github.sha }}"
+          fi
+
+          # Subpackage installation with import test
+          if [ "${{ matrix.install_method }}" = "editable" ]; then
+            bash .github/scripts/container_exec.sh "
+              pip install -e ${{ matrix.package }}
+              python3 -c 'import ${{ matrix.package }}'
+            "
+          elif [ "${{ matrix.install_method }}" = "non-editable" ]; then
+            bash .github/scripts/container_exec.sh "
+              pip install ./${{ matrix.package }}
+              python3 -c 'import ${{ matrix.package }}'
+            "
+          elif [ "${{ matrix.install_method }}" = "github" ]; then
+            bash .github/scripts/container_exec.sh "
+              pip install 'git+https://github.com/AMDResearch/intellikit.git@${GIT_SHA}#subdirectory=${{ matrix.package }}'
+              python3 -c 'import ${{ matrix.package }}'
+            "
+          fi

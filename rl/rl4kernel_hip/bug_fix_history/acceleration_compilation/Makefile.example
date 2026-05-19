@@ -1,0 +1,239 @@
+# HIP Kernel 优化编译 Makefile
+# 整合了所有优化策略：ccache、并行编译、增量编译、LTO等
+
+# ==================== 配置参数 ====================
+
+# 编译器
+CXX := hipcc
+CC := $(CXX)
+
+# 是否使用 ccache
+USE_CCACHE ?= 1
+ifeq ($(USE_CCACHE),1)
+    CXX := ccache $(CXX)
+endif
+
+# GPU 架构
+GPU_ARCH := gfx90a
+
+# 优化级别：debug, release, profile
+BUILD_TYPE ?= release
+
+# 并行编译核心数
+NPROC := $(shell nproc)
+
+# ==================== 路径配置 ====================
+
+# PyTorch 路径（自动检测）
+TORCH_DIR := $(shell python -c "import torch; import os; print(os.path.dirname(torch.__file__))")
+TORCH_INCLUDE := $(TORCH_DIR)/include
+TORCH_LIB := $(TORCH_DIR)/lib
+
+# Python 路径
+PYTHON_INCLUDE := $(shell python3-config --includes | sed 's/-I//g' | awk '{print $$1}')
+
+# ROCm 路径
+ROCM_PATH ?= /opt/rocm
+
+# 源文件目录
+SRC_DIR := hip_code_ex
+BUILD_DIR := build
+OBJ_DIR := $(BUILD_DIR)/obj
+BIN_DIR := $(BUILD_DIR)/lib
+
+# ==================== 源文件 ====================
+
+# 所有 .hip 源文件
+HIP_SOURCES := $(wildcard $(SRC_DIR)/*.hip)
+
+# 对应的 .o 文件
+HIP_OBJECTS := $(patsubst $(SRC_DIR)/%.hip,$(OBJ_DIR)/%.o,$(HIP_SOURCES))
+
+# 输出的 .so 文件
+TARGET_SO := $(BIN_DIR)/EDMLoss.so
+
+# ==================== 编译标志 ====================
+
+# 基础标志
+BASE_FLAGS := -std=c++17 -fPIC --offload-arch=$(GPU_ARCH)
+
+# Include 路径
+INCLUDES := -I$(PYTHON_INCLUDE) \
+            -I$(TORCH_INCLUDE) \
+            -I$(TORCH_INCLUDE)/torch/csrc/api/include
+
+# Library 路径
+LIB_PATHS := -L$(TORCH_LIB) \
+             -L$(ROCM_PATH)/lib
+
+# 链接库
+LIBS := -ltorch -ltorch_cpu -ltorch_python -lc10 \
+        -lhipblas -lrocblas
+
+# 根据构建类型设置标志
+ifeq ($(BUILD_TYPE),debug)
+    OPT_FLAGS := -O0 -g -DDEBUG
+    LINK_FLAGS := 
+else ifeq ($(BUILD_TYPE),profile)
+    OPT_FLAGS := -O2 -g -pg
+    LINK_FLAGS := -pg
+else ifeq ($(BUILD_TYPE),release)
+    OPT_FLAGS := -O3 -march=native -mtune=native \
+                 -ffast-math -funroll-loops \
+                 -fvisibility=hidden
+    LINK_FLAGS := -Wl,--strip-all -Wl,--gc-sections -Wl,-O2
+endif
+
+# 是否启用 LTO
+USE_LTO ?= 0
+ifeq ($(USE_LTO),1)
+    OPT_FLAGS += -flto
+    LINK_FLAGS += -flto -fuse-linker-plugin
+endif
+
+# 完整编译标志
+CXXFLAGS := $(BASE_FLAGS) $(OPT_FLAGS) $(INCLUDES)
+LDFLAGS := $(LIB_PATHS) $(LIBS) $(LINK_FLAGS)
+
+# ==================== 编译规则 ====================
+
+.PHONY: all clean info test benchmark
+
+# 默认目标
+all: $(TARGET_SO)
+
+# 创建目录
+$(OBJ_DIR) $(BIN_DIR):
+	@mkdir -p $@
+
+# 编译规则：.hip -> .o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.hip | $(OBJ_DIR)
+	@echo "🔨 编译: $< -> $@"
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo "✅ 完成: $@"
+
+# 链接规则：.o -> .so
+$(TARGET_SO): $(HIP_OBJECTS) | $(BIN_DIR)
+	@echo "🔗 链接: $@"
+	$(CXX) -shared $(HIP_OBJECTS) -o $@ $(LDFLAGS)
+	@echo "✅ 生成: $@ ($(shell du -h $@ | cut -f1))"
+
+# 并行编译（显式）
+parallel:
+	@echo "🚀 并行编译（$(NPROC) 核心）"
+	$(MAKE) -j$(NPROC) all
+
+# 清理
+clean:
+	@echo "🧹 清理构建文件"
+	rm -rf $(BUILD_DIR)
+	rm -f *.o *.so
+	@echo "✅ 清理完成"
+
+# 深度清理（包括缓存）
+distclean: clean
+	@echo "🧹 清理所有缓存"
+	rm -rf .hip_build_cache
+	@if command -v ccache >/dev/null 2>&1; then \
+		ccache -C; \
+		echo "✅ ccache 清理完成"; \
+	fi
+
+# 显示配置信息
+info:
+	@echo "==================== 编译配置 ===================="
+	@echo "编译器:       $(CXX)"
+	@echo "构建类型:     $(BUILD_TYPE)"
+	@echo "GPU架构:      $(GPU_ARCH)"
+	@echo "使用ccache:   $(USE_CCACHE)"
+	@echo "使用LTO:      $(USE_LTO)"
+	@echo "并行核心:     $(NPROC)"
+	@echo ""
+	@echo "PyTorch路径:  $(TORCH_DIR)"
+	@echo "Python路径:   $(PYTHON_INCLUDE)"
+	@echo "ROCm路径:     $(ROCM_PATH)"
+	@echo ""
+	@echo "编译标志:     $(CXXFLAGS)"
+	@echo "链接标志:     $(LDFLAGS)"
+	@echo "=================================================="
+	@if command -v ccache >/dev/null 2>&1; then \
+		echo ""; \
+		echo "ccache 统计:"; \
+		ccache -s; \
+	fi
+
+# 性能测试
+benchmark: $(TARGET_SO)
+	@echo "⏱️  运行性能测试..."
+	@time python -c "import torch; torch.ops.load_library('$(TARGET_SO)')"
+
+# 测试编译
+test: clean
+	@echo "🧪 测试不同优化级别的编译时间"
+	@echo "---------- -O0 (debug) ----------"
+	@time $(MAKE) BUILD_TYPE=debug all
+	@$(MAKE) clean
+	@echo ""
+	@echo "---------- -O2 ----------"
+	@time $(MAKE) BUILD_TYPE=release OPT_FLAGS=-O2 all
+	@$(MAKE) clean
+	@echo ""
+	@echo "---------- -O3 ----------"
+	@time $(MAKE) BUILD_TYPE=release all
+
+# 安装 ccache（如果未安装）
+install-ccache:
+	@if ! command -v ccache >/dev/null 2>&1; then \
+		echo "📦 安装 ccache..."; \
+		sudo apt update && sudo apt install -y ccache; \
+	else \
+		echo "✅ ccache 已安装"; \
+	fi
+
+# 依赖关系生成（自动依赖追踪）
+-include $(HIP_OBJECTS:.o=.d)
+
+$(OBJ_DIR)/%.d: $(SRC_DIR)/%.hip | $(OBJ_DIR)
+	@$(CXX) $(CXXFLAGS) -MM -MT $(OBJ_DIR)/$*.o $< > $@
+
+# ==================== 使用示例 ====================
+#
+# 基本编译:
+#   make
+#
+# 并行编译（推荐）:
+#   make -j8
+#   或
+#   make parallel
+#
+# Debug 模式:
+#   make BUILD_TYPE=debug
+#
+# Release + LTO:
+#   make BUILD_TYPE=release USE_LTO=1
+#
+# 查看配置:
+#   make info
+#
+# 清理:
+#   make clean
+#
+# 性能对比测试:
+#   make test
+#
+# ==================== 优化技巧 ====================
+#
+# 1. 首次编译慢？启用 ccache:
+#    make USE_CCACHE=1
+#
+# 2. 多文件项目？使用并行编译:
+#    make -j$(nproc)
+#
+# 3. 生产环境？使用 release + LTO:
+#    make BUILD_TYPE=release USE_LTO=1
+#
+# 4. CI/CD？设置缓存目录:
+#    export CCACHE_DIR=/cache/ccache
+#    make
+#
+

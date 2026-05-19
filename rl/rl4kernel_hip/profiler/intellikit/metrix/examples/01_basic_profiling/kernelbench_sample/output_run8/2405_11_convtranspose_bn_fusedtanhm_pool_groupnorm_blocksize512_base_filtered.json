@@ -1,0 +1,112 @@
+{
+  "phase": "filtered",
+  "effective_arch": "gfx942",
+  "command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.py --arch gfx942 --warmup-iters 0 --run-iters 5 --gpu-id 6",
+  "kernel_filter": "tanh_maxpool_optimized_kernel",
+  "total_kernels": 1,
+  "run_config": {
+    "prewarm_iters": 2,
+    "profile_iters": 5,
+    "gpu_id": 6,
+    "timeout_seconds": 600,
+    "arch_report": {
+      "effective_arch": "gfx942",
+      "mismatches": [],
+      "ambiguous": [
+        "PYTORCH_ROCM_ARCH=gfx90a,gfx942"
+      ],
+      "cleared_flags": [
+        "HIPCC_COMPILE_FLAGS_APPEND"
+      ]
+    },
+    "metrics": [
+      "memory.hbm_bandwidth_utilization",
+      "memory.l2_hit_rate",
+      "memory.coalescing_efficiency",
+      "compute.total_flops"
+    ],
+    "stage_timings_s": {
+      "compile_seconds": 33.329085293924436,
+      "prewarm_seconds": 8.213159712031484,
+      "inventory_profile_seconds": 8.74263442796655,
+      "filtered_profile_seconds": 44.04806176899001,
+      "total_sample_seconds": 61.00399409804959
+    },
+    "compile_command": "/usr/bin/python /wekafs/zepingl/rl4kernel_hip/profiler/intellikit/metrix/examples/01_basic_profiling/kernelbench_sample3/runner.py --hip-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.hip --functional-file /wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.py --arch gfx942 --warmup-iters 0 --run-iters 0 --compile-only"
+  },
+  "sample": {
+    "sample": "2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base",
+    "hip_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/hip_code/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.hip",
+    "functional_file": "/wekafs/zepingl/rl4kernel_hip/HIP_benchmark_kit/data/hip_eval_dataset_kernelbench_25_tasks/pytorch_code_functional/2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.py",
+    "category": "Dataset sample",
+    "note": "Auto-selected dataset sample 2405_11_convtranspose_bn_fusedtanhm_pool_groupnorm_blocksize512_base.",
+    "custom_kernel_names": [
+      "tanh_maxpool_optimized_kernel"
+    ],
+    "init_inputs": [
+      32,
+      64,
+      4,
+      2,
+      1,
+      8,
+      4
+    ],
+    "inputs": [
+      {
+        "kind": "tensor",
+        "shape": [
+          128,
+          32,
+          32,
+          32
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu"
+      }
+    ]
+  },
+  "kernels": [
+    {
+      "name": "tanh_maxpool_optimized_kernel",
+      "dispatch_count": 5,
+      "duration_us": {
+        "min": 62.462,
+        "max": 62.462,
+        "avg": 62.462,
+        "count": 1,
+        "unit": ""
+      },
+      "metrics": {
+        "memory.hbm_bandwidth_utilization": {
+          "min": 8.108937872630849,
+          "max": 8.108937872630849,
+          "avg": 8.108937872630849,
+          "count": 1,
+          "unit": "Percent"
+        },
+        "memory.l2_hit_rate": {
+          "min": 16.998188292463748,
+          "max": 16.998188292463748,
+          "avg": 16.998188292463748,
+          "count": 1,
+          "unit": "Percent"
+        },
+        "memory.coalescing_efficiency": {
+          "min": 29.411764705882355,
+          "max": 29.411764705882355,
+          "avg": 29.411764705882355,
+          "count": 1,
+          "unit": "Percent"
+        },
+        "compute.total_flops": {
+          "min": 4194304000.0,
+          "max": 4194304000.0,
+          "avg": 4194304000.0,
+          "count": 1,
+          "unit": "FLOPS"
+        }
+      }
+    }
+  ]
+}

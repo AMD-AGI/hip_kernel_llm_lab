@@ -1,0 +1,46 @@
+# HIP kernel-agent generation configuration
+
+# Model configuration
+model:
+  path: /dev/shm/hip_vllm_model_cache  # 启动脚本会用 --model_path 覆盖这里
+
+# Input/Output paths
+data:
+  input_dir: ../data/hip_eval_neurlps/hip_eval_dataset_kernelbench_25_tasks/hip_code
+  output_dir: ../../outputs/HIP_benchmark_kit/gen_hip_kernel/hip_eval_neurlps_kernelbench25/default_model/hip_code_optimized_kernel-agent-single-sft-val/target_{target_gpu}/contract_{output_contract}/rollout_n_{rollout_n}
+  file_pattern: "*.hip"
+
+# Generation parameters
+generation:
+  batch_size: 32  # 批处理
+  response_length: 32768  # 生成的最大长度
+  temperature: 1.0  # 采样温度
+  top_p: 0.95  # Top-p (nucleus) sampling
+  top_k: -1  # Top-k sampling (-1表示不使用)
+  seed_base: 42  # 串行 rollout 的起始 seed，单次 rollout 的 seed = seed_base + rollout_idx
+  target_gpu: mi300x
+  output_contract: sample_json_v1
+  optimization_paradigm: hip2hip_full_file    #options: kernel2kernel_splice, hip2hip_full_file
+  data_source: kernel-agent-single-sft-train
+  prompt_text: ""
+  prompt_map_json: ""
+  prompt_map_arm: ""
+  raw_response_dir: ""
+  feedback_context_json: ""
+  experiment_arm: ""
+
+# vLLM Rollout configuration
+rollout:
+  dtype: bfloat16  # 模型数据类型
+  ignore_eos: false  # 是否忽略EOS token
+  enforce_eager: true  # 使用eager模式（不使用CUDA graph）
+  max_model_len: 32768  # 模型最大上下文长度
+  gpu_memory_utilization: 0.80  # GPU显存利用率
+  tensor_model_parallel_size: 8  # 张量并行大小（使用的GPU数量）
+  n: 4  # 每个输入串行生成的样本数（每次调用 n=1，按 rollout_idx 逐次生成）
+
+# Environment variables
+environment:
+  CUDA_VISIBLE_DEVICES: "0,1,2,3,4,5,6,7"
+  VLLM_ENGINE_ITERATION_TIMEOUT_S: "1000000000"
+
