@@ -6,25 +6,24 @@
 
 `hip-kernel-llm-lab` is a repository for training and evolving LLMs toward HIP
 kernel generation, understanding, optimization, and related engineering tasks.
-The project is organized around three training stages:
+The project is organized around three training stages and the supporting kernel
+data-generation/evaluation tooling needed to run them:
 
 1. Continued pretraining (`cpt`)
 2. Supervised fine-tuning (`sft`)
 3. Reinforcement learning (`rl`)
-
-At the moment, the repository mainly provides the top-level structure and
-ownership definition for these stages. Stage-specific code has not been checked
-in yet and will be added incrementally.
+4. HIP kernel data generation and optimization (`hip-kernel-generator`)
 
 ## Repository Layout
 
 ```text
 hip_kernel_llm_lab/
-├── cpt/        # continued pretraining assets and code
-├── sft/        # supervised fine-tuning assets and code
-├── rl/         # reinforcement learning assets and code
-├── examples/   # example data, recipes, and usage samples
-├── .github/    # repository metadata such as CODEOWNERS
+├── cpt/                    # continued pretraining launchers and configs
+├── sft/                    # supervised fine-tuning launchers and configs
+├── rl/                     # veRL-based HIP kernel reinforcement learning stack
+├── hip-kernel-generator/   # LLM-assisted PyTorch/HIP data generation tools
+├── examples/               # example data, recipes, and usage samples
+├── .github/                # repository metadata such as CODEOWNERS
 ├── LICENSE
 └── README.md
 ```
@@ -50,6 +49,18 @@ behavior using task-specific rewards, such as correctness, compilability,
 performance-oriented preferences, or other training objectives relevant to HIP
 kernel workflows.
 
+### `hip-kernel-generator`
+
+The generator tools build and refine data for HIP kernel training workflows.
+They cover:
+
+- PyTorch module to PyTorch functional conversion
+- PyTorch module to HIP kernel generation
+- HIP kernel to optimized HIP kernel transformation
+
+These tools are useful for producing SFT examples, RL seed data, and artifacts
+that can be inspected or replayed during model development.
+
 ## Planned Workflow
 
 The intended high-level training flow is:
@@ -60,15 +71,71 @@ The intended high-level training flow is:
 3. Use reinforcement learning to optimize for downstream quality signals such as
    correctness, preference alignment, and performance-related objectives.
 
+## Quick Start
+
+### Continued Pretraining
+
+```bash
+cd cpt
+bash run_train_cpt.sh
+```
+
+The default CPT YAMLs are under `cpt/train_yamls/`.
+
+### Supervised Fine-Tuning
+
+```bash
+cd sft
+bash run_train_full_sft.sh
+```
+
+The default SFT YAML is `sft/train_yamls/qwen3-14b-full-sft-hip.yaml`.
+Update its `dataset`, `model_name_or_path`, and `output_dir` fields before
+launching a new run.
+
+### Reinforcement Learning
+
+Start the HIP evaluation server first:
+
+```bash
+cd rl/rl4kernel_hip/hip_kernel_evaluation_server
+HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 ./setup_server_req_deploy_hip2hip_batch.sh
+```
+
+Then launch HIP2HIP single-turn RL training:
+
+```bash
+cd rl/rl4kernel_hip
+export WANDB_API_KEY=...
+bash scripts/train/react_single_turn_v1_hip2hip.sh \
+  --train path/to/train.parquet \
+  --val path/to/val.parquet \
+  --sf-url http://host:8080/run_code
+```
+
+### HIP Kernel Data Generation
+
+Install the specific generator package you need:
+
+```bash
+cd hip-kernel-generator
+pip install -e ./torch_modu2func_kit[dev]
+pip install -e ./torch2hip_kit[dev]
+pip install -e ./py_hip_kernel2kernel_kit[dev]
+```
+
+See `hip-kernel-generator/README.md` for package-specific CLI examples.
+
 ## Current Status
 
-This repository is currently in an early layout stage.
+This repository contains runnable assets for all main stages:
 
-- The root structure for `cpt`, `sft`, `rl`, and `examples` is already in place.
-- Stage-specific implementations, configs, scripts, and detailed usage docs are
-  not in the repository yet.
-- As code is added, each stage directory can grow its own dedicated README and
-  operational documentation.
+- `cpt/` and `sft/` provide LLaMA-Factory based launchers and training YAMLs.
+- `rl/rl4kernel_hip/` provides a veRL-based HIP kernel RL stack, reward code,
+  dataset conversion docs, training launchers, and evaluation server tooling.
+- `hip-kernel-generator/` provides installable tools for PyTorch-to-HIP and
+  HIP-to-HIP generation/optimization workflows.
+- Stage-specific READMEs contain the operational details for each workflow.
 
 ## Code Ownership
 
