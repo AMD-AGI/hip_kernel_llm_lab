@@ -123,28 +123,17 @@ pip install gunicorn
 
 ### Data Preprocessing
 
-Before training, download the raw RL training JSON files and convert them to
-veRL Parquet format. The dataset is hosted in the private Hugging Face dataset
-repo [`amd/rl_data_hip`](https://huggingface.co/datasets/amd/rl_data_hip).
+RL data is maintained in the sibling `hip_llm_dataset` directory. There are two
+kinds of RL data:
 
-Run the download command from the repository root and place the files under the
-project's expected raw-data directory:
+#### Raw RL data
 
-```bash
-export HF_TOKEN=...
-huggingface-cli download amd/rl_data_hip \
-  --repo-type dataset \
-  --include 'rl_data_*.json' \
-  --local-dir dataset/hip_kernel_rldataset
-```
+Use these files when rebuilding veRL parquet data from raw JSON records:
 
-After download, the local layout should be:
+- `rl_raw_hard_3k`: `hip_llm_dataset/rl/rl_data/rl_data_hard_3k.json`
+- `rl_raw_normal_10k`: `hip_llm_dataset/rl/rl_data/rl_data_normal_10k.json`
 
-```text
-dataset/hip_kernel_rldataset/
-├── rl_data_hard_3k.json
-└── rl_data_normal_10k.json
-```
+These files contain raw RL records with `data_info` and `messages`.
 
 The conversion scripts require `huggingface_hub`, `pandas`, `datasets`, and
 `pyarrow`:
@@ -157,17 +146,25 @@ pip install huggingface_hub pandas datasets pyarrow
 
 ```bash
 python dataset/convert_to_verl_parquet.py \
-  --input-jsons dataset/hip_kernel_rldataset/rl_data_hard_3k.json dataset/hip_kernel_rldataset/rl_data_normal_10k.json \
+  --input-jsons \
+    hip_llm_dataset/rl/rl_data/rl_data_hard_3k.json \
+    hip_llm_dataset/rl/rl_data/rl_data_normal_10k.json \
   --input-format rl_data \
-  --reference-root dataset/AIG-Datasets/v0.1/PyTorch_HIP_kernel_dataset/pytorch_hip_kernel_gpumode \
+  --reference-root path/to/pytorch_hip_kernel_gpumode \
   --data-source hip2hip-train \
   --optimization-paradigm hip2hip \
   --target-gpus mi300x \
   --output-contract sample_json_v1 \
   --output-dir dataset/hip2hip_parquet \
-  --output-name rl_data_hard3k_normal10k_mixed_hip2hip \
+  --output-name rl_mi300x_verl \
   --shuffle --seed 42
 ```
+
+#### Direct used RL data
+
+Use this file directly for training if you do not need to rebuild parquet:
+
+- `rl_mi300x_verl_filtered`: `hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet`
 
 **For kernel2kernel splice training:**
 
@@ -218,8 +215,8 @@ Hip2Hip single-turn full-file optimization:
 ```bash
 export WANDB_API_KEY=...
 bash scripts/train/react_single_turn_v1_hip2hip.sh \
-  --train dataset/hip2hip_parquet/train.parquet \
-  --val dataset/hip2hip_parquet/val.parquet \
+  --train hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
+  --val hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
   --sf-url http://host:8080/run_code
 ```
 
