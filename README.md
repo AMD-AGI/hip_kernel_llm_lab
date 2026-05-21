@@ -71,6 +71,40 @@ The intended high-level training flow is:
 3. Use reinforcement learning to optimize for downstream quality signals such as
    correctness, preference alignment, and performance-related objectives.
 
+## Dataset Resources
+
+The training datasets are maintained separately from this code repository.
+
+- Hugging Face dataset: [`amd/hip_llm_dataset`](https://huggingface.co/datasets/amd/hip_llm_dataset)
+- Local dataset directory convention: `hip_llm_dataset/`
+
+Download the dataset from the repository root:
+
+```bash
+export HF_TOKEN=...
+huggingface-cli download amd/hip_llm_dataset \
+  --repo-type dataset \
+  --local-dir hip_llm_dataset
+```
+
+The dataset is organized by training stage:
+
+- CPT: `hip_llm_dataset/cpt/`
+- SFT: `hip_llm_dataset/sft/`
+- RL: `hip_llm_dataset/rl/`
+
+Common dataset names used by this repository include:
+
+- `pretrain_hip`: continued pretraining corpus
+- `FIM_hip`: FIM / continuation-style code training data
+- `merged_110k_if_reasoning`: SFT messages dataset
+- `rl_raw_hard_3k`: raw hard RL JSON data
+- `rl_raw_normal_10k`: raw normal RL JSON data
+- `rl_mi300x_verl_filtered`: direct-use MI300X veRL parquet data
+
+See the stage-specific README files for exact training commands and data
+registration details.
+
 ## Quick Start
 
 ### Continued Pretraining
@@ -108,8 +142,8 @@ Then launch HIP2HIP single-turn RL training:
 cd rl/rl4kernel_hip
 export WANDB_API_KEY=...
 bash scripts/train/react_single_turn_v1_hip2hip.sh \
-  --train path/to/train.parquet \
-  --val path/to/val.parquet \
+  --train hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
+  --val hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
   --sf-url http://host:8080/run_code
 ```
 
