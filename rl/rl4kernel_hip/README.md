@@ -74,14 +74,21 @@ RL4Kernel/
 │   │   ├── react_single_turn_v1.sh
 │   │   ├── react_single_turn_v1_hip2hip.sh
 │   │   ├── react_multi_turn.sh
+│   │   ├── legacy/               # Legacy fenced-HIP launchers
+│   │   │   ├── kernel2kernel_train.sh
+│   │   │   └── hip2hip_train.sh
 │   │   └── HIP2HIP_TRAINING.md
 │   └── eval/                      # KernelBench eval wrappers
-├── dataset/                       # Data converters, raw data, and generated parquet
-│   ├── hip_kernel_rldataset/      # Raw RL training JSON data
-│   │   ├── rl_data_hard_3k.json
-│   │   └── rl_data_normal_10k.json
+├── hip_llm_dataset/               # Downloaded HF dataset (not tracked)
+│   ├── cpt/                       # CPT JSON data
+│   ├── sft/                       # SFT JSONL data
+│   └── rl/                        # RL raw JSON and ready-to-train parquet
+├── dataset/                       # Data converters and generated parquet
 │   ├── AIG-Datasets/              # Local reference HIP/PyTorch dataset tree
-│   ├── hip2hip_parquet/           # Generated Hip2Hip veRL parquet files
+│   ├── hip2hip_parquet/           # React Hip2Hip parquet output
+│   ├── kernel2kernel_parquet/     # React Kernel2Kernel parquet output
+│   ├── hip2hip_legacy_parquet/    # Legacy fenced-HIP Hip2Hip parquet output
+│   ├── kernel2kernel_legacy_parquet/  # Legacy fenced-HIP Kernel2Kernel parquet output
 │   └── convert_to_verl_parquet.py # JSON-to-veRL parquet converter
 ├── sandbox/                       # Evaluation client adapters
 ├── HIP_benchmark_kit/             # Benchmark tools & evaluation
@@ -123,17 +130,35 @@ pip install gunicorn
 
 ### Data Preprocessing
 
-RL data is maintained in the sibling `hip_llm_dataset` directory. There are two
-kinds of RL data:
+Before training, download the HIP LLM dataset from Hugging Face:
+[`amd/hip_llm_dataset`](https://huggingface.co/datasets/amd/hip_llm_dataset).
+Run the download command from the repository root:
 
-#### Raw RL data
+```bash
+export HF_TOKEN=...
+huggingface-cli download amd/hip_llm_dataset \
+  --repo-type dataset \
+  --local-dir hip_llm_dataset
+```
 
-Use these files when rebuilding veRL parquet data from raw JSON records:
+After download, the local layout should be:
 
-- `rl_raw_hard_3k`: `hip_llm_dataset/rl/rl_data/rl_data_hard_3k.json`
-- `rl_raw_normal_10k`: `hip_llm_dataset/rl/rl_data/rl_data_normal_10k.json`
-
-These files contain raw RL records with `data_info` and `messages`.
+```text
+hip_llm_dataset/
+├── cpt/
+│   ├── merged_FIM.json
+│   └── pretrain_data_merged.json
+├── sft/
+│   └── merged_260323_110k_if_reasoning.jsonl
+├── rl/
+│   ├── rl_data/
+│   │   ├── rl_data_hard_3k.json
+│   │   └── rl_data_normal_10k.json
+│   └── rl_data_v01_mi300x_verl_filtered.parquet
+├── .cache/
+├── .gitattributes
+└── README.md
+```
 
 The conversion scripts require `huggingface_hub`, `pandas`, `datasets`, and
 `pyarrow`:
@@ -142,7 +167,18 @@ The conversion scripts require `huggingface_hub`, `pandas`, `datasets`, and
 pip install huggingface_hub pandas datasets pyarrow
 ```
 
-**For hip2hip full-file training:**
+Parquet generation has two independent choices:
+`--optimization-paradigm` selects the code unit (`hip2hip` full file or
+`kernel2kernel` splice), and `--output-contract` selects the response format
+(`sample_json_v1` for react/current training, `legacy_hip_fence_v1` for legacy
+fenced-HIP training).
+
+| Paradigm | Data source | React/current output | Legacy output |
+|----------|-------------|----------------------|---------------|
+| `hip2hip` | `hip2hip-train` | `sample_json_v1` -> `dataset/hip2hip_parquet` | `legacy_hip_fence_v1` -> `dataset/hip2hip_legacy_parquet` |
+| `kernel2kernel` | `kernel2kernel-train` | `sample_json_v1` -> `dataset/kernel2kernel_parquet` | `legacy_hip_fence_v1` -> `dataset/kernel2kernel_legacy_parquet` |
+
+Hip2Hip conversion template:
 
 ```bash
 python dataset/convert_to_verl_parquet.py \
@@ -150,23 +186,27 @@ python dataset/convert_to_verl_parquet.py \
     hip_llm_dataset/rl/rl_data/rl_data_hard_3k.json \
     hip_llm_dataset/rl/rl_data/rl_data_normal_10k.json \
   --input-format rl_data \
-  --reference-root path/to/pytorch_hip_kernel_gpumode \
+  --reference-root dataset/AIG-Datasets/v0.1/PyTorch_HIP_kernel_dataset/pytorch_hip_kernel_gpumode \
   --data-source hip2hip-train \
   --optimization-paradigm hip2hip \
   --target-gpus mi300x \
   --output-contract sample_json_v1 \
   --output-dir dataset/hip2hip_parquet \
-  --output-name rl_mi300x_verl \
+  --output-name rl_data_hard3k_normal10k_mixed_hip2hip \
   --shuffle --seed 42
 ```
 
-#### Direct used RL data
+If you do not need to rebuild parquet from raw JSON, use the prepared veRL file
+directly in the training launcher:
 
-Use this file directly for training if you do not need to rebuild parquet:
+```bash
+bash scripts/train/react_single_turn_v1_hip2hip.sh \
+  --train hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
+  --val hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
+  --sf-url http://host:8080/run_code
+```
 
-- `rl_mi300x_verl_filtered`: `hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet`
-
-**For kernel2kernel splice training:**
+Kernel2Kernel conversion template:
 
 ```bash
 python dataset/convert_to_verl_parquet.py \
@@ -181,6 +221,9 @@ python dataset/convert_to_verl_parquet.py \
   --output-dir dataset/kernel2kernel_parquet \
   --output-name kernel2kernel_mixed
 ```
+
+For legacy data, keep the same command and switch only `--output-contract`,
+`--output-dir`, and `--output-name`.
 
 The output Parquet files contain:
 - `prompt`: Chat-style messages using the shared kernel-agent prompt template
@@ -210,36 +253,28 @@ HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 ./setup_server_req_deploy_hip2hip_batch.sh
 All current launchers expect `WANDB_API_KEY` to be supplied by the environment;
 do not put keys in scripts or tracked config files.
 
-Hip2Hip single-turn full-file optimization:
+Choose the launcher that matches the parquet contract and optimization
+paradigm:
+
+| Training mode | Paradigm | Contract | Launcher | Reward mode |
+|---------------|----------|----------|----------|-------------|
+| React single-turn | Hip2Hip | `sample_json_v1` | `scripts/train/react_single_turn_v1_hip2hip.sh` | `correct_speedup_copy_penalty` |
+| React single-turn | Kernel2Kernel | `sample_json_v1` | `scripts/train/react_single_turn_v1.sh` | `correct_speedup_copy_penalty` |
+| React multi-turn | Either | `sample_json_v1` | `scripts/train/react_multi_turn.sh` | `correct_speedup_copy_penalty` |
+| Legacy single-turn | Hip2Hip | `legacy_hip_fence_v1` | `scripts/train/legacy/hip2hip_train.sh` | `legacy_default` |
+| Legacy single-turn | Kernel2Kernel | `legacy_hip_fence_v1` | `scripts/train/legacy/kernel2kernel_train.sh` | `legacy_default` |
+
+Generic launch pattern:
 
 ```bash
 export WANDB_API_KEY=...
-bash scripts/train/react_single_turn_v1_hip2hip.sh \
-  --train hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
-  --val hip_llm_dataset/rl/rl_data_v01_mi300x_verl_filtered.parquet \
-  --sf-url http://host:8080/run_code
-```
-
-Kernel2Kernel single-turn splice optimization:
-
-```bash
-export WANDB_API_KEY=...
-bash scripts/train/react_single_turn_v1.sh \
-  --train dataset/kernel2kernel_parquet/train.parquet \
-  --val dataset/kernel2kernel_parquet/val.parquet \
-  --sf-url http://host:8080/run_code
-```
-
-Multi-turn tool-use training:
-
-```bash
-export WANDB_API_KEY=...
-bash scripts/train/react_multi_turn.sh \
+bash <launcher> \
   --train path/to/train.parquet \
   --val path/to/val.parquet \
-  --sf-url http://reward-server:8080/run_code \
-  --tool-server-url http://tool-server:8080
+  --sf-url http://host:8080/run_code
 ```
+
+For `react_multi_turn.sh`, also pass `--tool-server-url http://tool-server:8080`.
 
 ---
 

@@ -44,6 +44,7 @@ from reward.reasoning_visualizer import (
 SF_URL_ENV = os.environ.get("SF_URL", "").strip()
 REWARD_EVAL_AUDIT_LOG_ENV = os.environ.get("REWARD_EVAL_AUDIT_LOG", "").strip()
 ARCHIVE_VERSION = 1
+LEGACY_REWARD_MODES = {"", "legacy", "legacy_default"}
 
 
 def _supports_reward_color() -> bool:
@@ -844,10 +845,10 @@ def compute_score_batch(
                     dtw_to_ref = 0.0
                     token_len = 0
             
-            # 选择 reward 计算模式：
-            # - 默认：沿用现有 DTW novelty shaping + copy penalty 逻辑
-            # - REWARD_MODE=soft_clip_novelty：gate + clip(speedup-1) + soft novelty regularizer
-            # - REWARD_MODE=correct_speedup_copy_penalty：correct+speedup with binary copy penalty
+            # Select reward computation mode:
+            # - legacy_default: original DTW novelty shaping + copy penalty logic
+            # - soft_clip_novelty: gate + clip(speedup-1) + soft novelty regularizer
+            # - correct_speedup_copy_penalty: correctness + speedup with binary copy penalty
             current_extra_info = extra_infos[idx] if extra_infos and idx < len(extra_infos) else None
             mode = _resolve_reward_mode(reward_mode, current_extra_info)
             if mode == "soft_clip_novelty":
@@ -889,11 +890,13 @@ def compute_score_batch(
                     copy_reward=copy_reward,
                     return_details=True,
                 )
-            else:
-                # 使用带 novelty shaping 的评分函数（传入 token_len 用于自适应阈值）
+            elif mode in LEGACY_REWARD_MODES:
                 score, is_copy, novelty, thresholds = _compute_single_score_with_novelty(
                     resp_item, dtw_to_ref, token_len, return_details=True
                 )
+            else:
+                print(f"[REWARD WARN] Unknown REWARD_MODE={mode!r}; assigning score 0.0")
+                score, is_copy, novelty, thresholds = (0.0, False, -1.0, (0.0, 0.0, 0.0))
             scores[idx] = score
             timing = resp_item.get("timing") or {}
             current_train_step = current_extra_info.get("train_step") if current_extra_info else None

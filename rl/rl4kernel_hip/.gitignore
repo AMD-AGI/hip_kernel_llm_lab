@@ -70,7 +70,10 @@ HIP_benchmark_kit/gen_hip_kernel/old_verl/
 
 # Local analysis/profiling scratch space
 analysis/
-scripts/train/legacy/
+scripts/train/legacy/*
+!scripts/train/legacy/
+!scripts/train/legacy/kernel2kernel_train.sh
+!scripts/train/legacy/hip2hip_train.sh
 
 # Training logs and outputs
 wandb/
@@ -138,3 +141,5 @@ profiler/**/dist/
 profiler/**/output/
 profiler/**/runs/
 profiler/**/logs/
+
+./sample.py
