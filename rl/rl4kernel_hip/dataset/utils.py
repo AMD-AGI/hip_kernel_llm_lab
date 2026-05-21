@@ -4,10 +4,14 @@ from .prompts import (
     DEFAULT_TARGET_GPU,
     DEFAULT_OPTIMIZATION_PARADIGM,
     HIP2HIP_FULL_FILE_PARADIGM,
+    HIP_FULL_FILE_LEGACY_CODE_FORMAT_WITH_STARTER_CODE,
+    HIP_FULL_FILE_LEGACY_CODE_FORMAT_WITHOUT_STARTER_CODE,
     HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITH_STARTER_CODE,
     HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE,
     HIP_FULL_FILE_REASONING_AND_JSON_RESPONSE_FORMAT_WITH_STARTER_CODE,
     HIP_FULL_FILE_REASONING_AND_JSON_RESPONSE_FORMAT_WITHOUT_STARTER_CODE,
+    HIP_LEGACY_CODE_FORMAT_WITH_STARTER_CODE,
+    HIP_LEGACY_CODE_FORMAT_WITHOUT_STARTER_CODE,
     HIP_REASONING_AND_CODE_FORMAT_WITH_STARTER_CODE,
     HIP_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE,
     HIP_REASONING_AND_JSON_RESPONSE_FORMAT_WITH_STARTER_CODE,
@@ -28,6 +32,8 @@ def fetch_hip_kernel_agent_system_prompt(
     optimization_paradigm: str = DEFAULT_OPTIMIZATION_PARADIGM,
 ):
     normalized_output_contract = (output_contract or DEFAULT_OUTPUT_CONTRACT).strip().lower()
+    if normalized_output_contract in {"", "auto", "none"}:
+        normalized_output_contract = DEFAULT_OUTPUT_CONTRACT
     normalized_paradigm = normalize_optimization_paradigm(optimization_paradigm)
     use_full_file = normalized_paradigm == HIP2HIP_FULL_FILE_PARADIGM
     use_json_output = normalized_output_contract in {
@@ -37,8 +43,6 @@ def fetch_hip_kernel_agent_system_prompt(
         "json",
     }
     use_hip_fence_output = normalized_output_contract in {
-        "",
-        "auto",
         "legacy_hip_fence_v1",
         "legacy_hip_fence",
         "legacy-hip-fence",
@@ -51,7 +55,10 @@ def fetch_hip_kernel_agent_system_prompt(
             "Expected a legacy hip fence or sample_json variant."
         )
 
-    prompt_sections = [get_prompt_template(target_gpu, normalized_paradigm)]
+    base_prompt = get_prompt_template(target_gpu, normalized_paradigm)
+    if use_hip_fence_output:
+        base_prompt = base_prompt.replace("\nYou are working in think mode.\n", "\n")
+    prompt_sections = [base_prompt]
     if prompt and prompt.strip():
         prompt_sections.append(prompt)
 
@@ -66,14 +73,30 @@ def fetch_hip_kernel_agent_system_prompt(
         else HIP_REASONING_AND_JSON_RESPONSE_FORMAT_WITHOUT_STARTER_CODE
     )
     fence_with_starter_format = (
-        HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITH_STARTER_CODE
+        (
+            HIP_FULL_FILE_LEGACY_CODE_FORMAT_WITH_STARTER_CODE
+            if use_hip_fence_output
+            else HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITH_STARTER_CODE
+        )
         if use_full_file
-        else HIP_REASONING_AND_CODE_FORMAT_WITH_STARTER_CODE
+        else (
+            HIP_LEGACY_CODE_FORMAT_WITH_STARTER_CODE
+            if use_hip_fence_output
+            else HIP_REASONING_AND_CODE_FORMAT_WITH_STARTER_CODE
+        )
     )
     fence_without_starter_format = (
-        HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE
+        (
+            HIP_FULL_FILE_LEGACY_CODE_FORMAT_WITHOUT_STARTER_CODE
+            if use_hip_fence_output
+            else HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE
+        )
         if use_full_file
-        else HIP_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE
+        else (
+            HIP_LEGACY_CODE_FORMAT_WITHOUT_STARTER_CODE
+            if use_hip_fence_output
+            else HIP_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE
+        )
     )
     starter_heading = "### Starter HIP File (reference)" if use_full_file else "### Starter Code (reference)"
     code_description = "complete optimized .hip source file" if use_full_file else "full optimized function"
@@ -138,8 +161,8 @@ def fetch_hip_kernel_agent_system_prompt(
 
         prompt_sections.append(
             "### Answer Order (strict)\n"
-            "1. First do optimization reasoning.\n"
-            "2. Then output exactly one fenced HIP code block using ```hip ... ```.\n"
+            "1. Output exactly one fenced HIP code block using ```hip ... ```.\n"
+            "2. Do not include reasoning, JSON, or any prose outside the code block.\n"
             "3. Do not add any text after the closing code fence."
         )
     return "\n\n".join(prompt_sections)

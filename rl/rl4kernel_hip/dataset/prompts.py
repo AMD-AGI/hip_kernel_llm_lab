@@ -374,6 +374,24 @@ HIP_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE = (
     "Do not add extra prose after the closing code fence."
 )
 
+HIP_LEGACY_CODE_FORMAT_WITH_STARTER_CODE = (
+    "Output exactly one HIP code block using triple backticks in this format:\n"
+    "```hip\n"
+    "// optimized HIP kernel/function code\n"
+    "```\n"
+    "The output must not include reasoning, JSON, or any prose outside the code block. "
+    "Use the starter code as the baseline, keep the function name and signature unchanged, "
+    "and only optimize code inside the function body."
+)
+
+HIP_LEGACY_CODE_FORMAT_WITHOUT_STARTER_CODE = (
+    "Output exactly one HIP code block using triple backticks in this format:\n"
+    "```hip\n"
+    "// optimized HIP kernel/function code\n"
+    "```\n"
+    "The output must not include reasoning, JSON, or any prose outside the code block."
+)
+
 HIP_REASONING_AND_JSON_RESPONSE_FORMAT_WITH_STARTER_CODE = (
     "After reasoning, output exactly one JSON object in this format:\n"
     '{"thought": "concise optimization summary", "code": "__global__ void ..."}\n'
@@ -405,6 +423,23 @@ HIP_FULL_FILE_REASONING_AND_CODE_FORMAT_WITHOUT_STARTER_CODE = (
     "// complete optimized .hip source file\n"
     "```\n"
     "Do not add extra prose after the closing code fence."
+)
+
+HIP_FULL_FILE_LEGACY_CODE_FORMAT_WITH_STARTER_CODE = (
+    "Output exactly one HIP code block using triple backticks in this format:\n"
+    "```hip\n"
+    "// complete optimized .hip source file\n"
+    "```\n"
+    "The output must not include reasoning, JSON, or any prose outside the code block. "
+    "Use the starter HIP file as the baseline and return a complete replacement .hip file."
+)
+
+HIP_FULL_FILE_LEGACY_CODE_FORMAT_WITHOUT_STARTER_CODE = (
+    "Output exactly one HIP code block using triple backticks in this format:\n"
+    "```hip\n"
+    "// complete optimized .hip source file\n"
+    "```\n"
+    "The output must not include reasoning, JSON, or any prose outside the code block."
 )
 
 HIP_FULL_FILE_REASONING_AND_JSON_RESPONSE_FORMAT_WITH_STARTER_CODE = (

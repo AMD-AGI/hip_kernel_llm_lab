@@ -67,6 +67,10 @@ def _make_legacy_fenced_response(code: str) -> str:
     )
 
 
+def _make_legacy_fenced_code_only_response(code: str) -> str:
+    return f"```hip\n{code}\n```"
+
+
 def _make_ground_truth() -> dict:
     return {
         "kernel_name": "test_kernel",
@@ -92,6 +96,19 @@ class ResponseParsingTests(unittest.TestCase):
     def test_legacy_fenced_response_is_still_supported(self):
         result = parse_kernel_generation_response(
             _make_legacy_fenced_response(KERNEL_SNIPPET),
+            data_source="kernel-agent-react-train",
+            kernel_name="test_kernel",
+            hip_ref=HIP_REF,
+            output_contract=LEGACY_HIP_FENCE_OUTPUT_CONTRACT,
+        )
+
+        self.assertTrue(result["parse_ok"])
+        self.assertEqual(result["parse_mode"], LEGACY_HIP_FENCE_OUTPUT_CONTRACT)
+        self.assertIn("__global__ void test_kernel", result["hip_src"])
+
+    def test_legacy_fenced_response_without_cot_is_supported(self):
+        result = parse_kernel_generation_response(
+            _make_legacy_fenced_code_only_response(KERNEL_SNIPPET),
             data_source="kernel-agent-react-train",
             kernel_name="test_kernel",
             hip_ref=HIP_REF,
@@ -187,6 +204,18 @@ class ResponseParsingTests(unittest.TestCase):
 
         self.assertFalse(result["parse_ok"])
         self.assertIn("markdown fence", result["parse_error"])
+
+    def test_hip_translation_unit_legacy_fence_without_cot_is_supported(self):
+        result = parse_generation_response(
+            _make_legacy_fenced_code_only_response(HIP_REF),
+            data_source="hip2hip-train",
+            output_contract=LEGACY_HIP_FENCE_OUTPUT_CONTRACT,
+            expected_code_unit="hip_translation_unit",
+        )
+
+        self.assertTrue(result["parse_ok"])
+        self.assertEqual(result["parse_mode"], LEGACY_HIP_FENCE_OUTPUT_CONTRACT)
+        self.assertIn("#include <hip/hip_runtime.h>", result["hip_src"])
 
     def test_hip2hip_training_row_contract_is_validated(self):
         expected = resolve_optimization_contract(
