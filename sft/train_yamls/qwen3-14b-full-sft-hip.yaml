@@ -10,7 +10,7 @@ finetuning_type: full
 deepspeed: train_yamls/deepspeed/ds_z3_config.json  # choices: [ds_z0_config.json, ds_z2_config.json, ds_z3_config.json]
  
 ### dataset
-dataset: merged_0403_110k_if_tagged 
+dataset: merged_110k_if_reasoning 
 template: qwen
 cutoff_len: 16384
 overwrite_cache: true

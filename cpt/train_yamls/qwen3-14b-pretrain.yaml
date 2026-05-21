@@ -9,7 +9,7 @@ finetuning_type: full
 deepspeed: train_yamls/deepspeed/ds_z3_config.json  # choices: [ds_z0_config.json, ds_z2_config.json, ds_z3_config.json]
  
 ### dataset
-dataset: pretrain_v3
+dataset: pretrain_hip
 template: qwen
 cutoff_len: 8192
 overwrite_cache: true

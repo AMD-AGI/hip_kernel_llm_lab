@@ -32,7 +32,8 @@ Place the dataset files into `LLaMA-Factory/data/` and make sure the dataset is 
 Notes:
 
 - Pair datasets can follow the Alpaca-style mapping already used in this repo, for example: `instruction`, `input`, `output`.
-- The default training YAML in this directory uses `dataset: merged_0403_110k_if_tagged`.
+- The default training YAML in this directory uses `dataset: merged_110k_if_reasoning`.
+- The dataset registry maps it to `merged_260323_110k_if_reasoning.jsonl`.
 - If you train with another dataset, update both the dataset registry file and the `dataset` field in `train_yamls/qwen3-14b-full-sft-hip.yaml`.
 
 ## 2. Install LLaMA-Factory
@@ -75,7 +76,8 @@ The current default configuration is:
 - Stage: `sft`
 - Fine-tuning type: `full`
 - DeepSpeed config: `train_yamls/deepspeed/ds_z3_config.json`
-- Dataset: `merged_0403_110k_if_tagged`
+- Dataset: `merged_110k_if_reasoning`
+- Dataset file: `merged_260323_110k_if_reasoning.jsonl`
 - Output directory: `saves/qwen3-14b/sft-merged-110k-claude-4.5-data-if-reasoning-tagged-14b-2e-5-cpt`
 
 ## Customization

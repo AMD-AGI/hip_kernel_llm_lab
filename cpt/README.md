@@ -23,8 +23,8 @@ Before starting training, make sure the following are ready:
 1. A working HIP/ROCm training environment
 2. Access to the base model weights, currently `Qwen/Qwen3-14B`
 3. A local LLaMA-Factory checkout installed in your Python environment
-4. HIP continued pretraining data registered as `pretrain_v3`
-5. FIM training data registered as `FIM_v1`
+4. HIP continued pretraining data registered as `pretrain_hip`
+5. FIM training data registered as `FIM_hip`
 
 ## 1. Prepare LLaMA-Factory
 
@@ -41,8 +41,8 @@ Place the training data under `LLaMA-Factory/data/` and make sure each dataset i
 
 Notes:
 
-- The CPT YAML uses `dataset: pretrain_v3`.
-- The FIM YAML uses `dataset: FIM_v1`.
+- The CPT YAML uses `dataset: pretrain_hip`, mapped to `pretrain_data_merged.json`.
+- The FIM YAML uses `dataset: FIM_hip`, mapped to `merged_FIM.json`.
 - If your LLaMA-Factory checkout uses `data/dataset_info.json`, copy or merge the dataset entries there.
 - If you use different dataset names, update both the dataset registry and the corresponding `dataset` field in the YAML files.
 
@@ -72,7 +72,8 @@ Default CPT configuration:
 - Stage: `pt`
 - Fine-tuning type: `full`
 - DeepSpeed config: `train_yamls/deepspeed/ds_z3_config.json`
-- Dataset: `pretrain_v3`
+- Dataset: `pretrain_hip`
+- Dataset file: `pretrain_data_merged.json`
 - Cutoff length: `8192`
 - Per-device train batch size: `4`
 - Gradient accumulation steps: `16`
@@ -114,7 +115,8 @@ Default FIM training configuration:
 - Stage: `sft`
 - Fine-tuning type: `full`
 - DeepSpeed config: `train_yamls/deepspeed/ds_z3_config.json`
-- Dataset: `FIM_v1`
+- Dataset: `FIM_hip`
+- Dataset file: `merged_FIM.json`
 - Cutoff length: `8192`
 - Per-device train batch size: `4`
 - Gradient accumulation steps: `2`

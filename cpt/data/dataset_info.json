@@ -163,8 +163,8 @@
       "assistant_tag": "assistant"
     }
   },
-  "merged_0403_110k_if_tagged" :{
-    "file_name": "merged_260323_110k_if_reasoning_mh_le16k_claude4.5_4.6.jsonl",
+  "merged_110k_if_reasoning" :{
+    "file_name": "merged_260323_110k_if_reasoning.jsonl",
     "formatting": "sharegpt",
     "columns": {
       "messages": "messages"
@@ -176,8 +176,8 @@
       "assistant_tag": "assistant"
     }
   },
-    "FIM_v1": {
-    "file_name": "pretrain_data_merged_FIM_v1.json",
+    "FIM_hip": {
+    "file_name": "merged_FIM.json",
     "formatting": "alpaca",
     "columns": {
       "prompt": "instruction",
@@ -185,8 +185,8 @@
       "response": "output"
     }
   },
-  "pretrain_v3": {
-    "file_name": "pretrain_data_merged_v3.json",
+  "pretrain_hip": {
+    "file_name": "pretrain_data_merged.json",
     "columns": {
       "prompt": "text"
     }
