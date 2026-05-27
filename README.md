@@ -184,6 +184,17 @@ Because the code for each training stage has not been added yet, ownership is
 currently maintained at the repository level. More granular ownership can be
 introduced after `cpt`, `sft`, and `rl` receive their stage-specific code.
 
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull
+request. Keep changes focused on one training stage or generator workflow,
+update the relevant README, and include validation commands or run details.
+
+## Security
+
+Do not open public issues for suspected vulnerabilities. Follow the private
+reporting process in [SECURITY.md](SECURITY.md).
+
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
