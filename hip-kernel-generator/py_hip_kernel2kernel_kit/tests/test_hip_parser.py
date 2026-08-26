@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 from py_hip_kernel2kernel_kit.hip_parser import (
     extract_gpu_functions,
     replace_function_body,

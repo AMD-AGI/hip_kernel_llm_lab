@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 from pathlib import Path
 
 from torch2hip_kit.config import AttemptRecord

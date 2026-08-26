@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 from pathlib import Path
 
 import py_hip_kernel2kernel_kit.verifier as verifier_module

@@ -53,3 +53,5 @@ optimized_output_hip/
 
 .DS_Store
 Thumbs.db
+
+/COPYRIGHT_HEADERS_ADDED.md
