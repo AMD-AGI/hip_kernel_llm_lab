@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 Parallel Batch Reward Manager for HIP Kernel Evaluation
 支持批量并行调用server API实现端到端加速
