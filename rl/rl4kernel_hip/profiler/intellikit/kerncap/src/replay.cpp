@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 // kerncap-replay — VA-faithful HSA kernel replay binary
 //
 // Loads a captured kernel dispatch (dispatch.json, kernarg.bin, kernel.hsaco,

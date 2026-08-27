@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # IntelliKit Tools Installer
 # Installs tools from Git via pip3 (git+https...#subdirectory=<tool>).
 # Usage: curl -sSL <install script URL> | bash -s -- [OPTIONS]

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """kerncap — Kernel extraction and isolation tool for HIP and Triton on AMD GPUs."""
 
 from importlib.metadata import PackageNotFoundError, version as _get_version

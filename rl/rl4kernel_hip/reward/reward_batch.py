@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 Batch-optimized reward.py for veRL
 支持批量调用HIP server API实现端到端加速

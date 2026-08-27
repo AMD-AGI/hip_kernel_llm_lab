@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Fallback .hsaco extractor using roc-obj-extract.
 
 Used when the runtime code object interception in libkerncap.so did not

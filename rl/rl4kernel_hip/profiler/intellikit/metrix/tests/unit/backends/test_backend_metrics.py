@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 Unit tests for backend metric computations (gfx942, gfx950, and gfx90a)
 

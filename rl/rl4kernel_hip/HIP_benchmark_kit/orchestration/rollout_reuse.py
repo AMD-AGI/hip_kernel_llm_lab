@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Context-aware rollout reuse helpers for KernelBench HIP runs."""
 
 from __future__ import annotations

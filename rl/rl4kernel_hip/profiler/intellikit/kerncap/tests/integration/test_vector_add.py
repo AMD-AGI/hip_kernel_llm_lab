@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Basic end-to-end integration test with a simple HIP vector_add kernel.
 
 This test does NOT require Docker — just a ROCm installation with hipcc,

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 find_package(hsa-runtime64 REQUIRED)
 find_package(hip REQUIRED)
 find_package(rocprofiler-sdk REQUIRED HINTS ${ROCM_PATH})

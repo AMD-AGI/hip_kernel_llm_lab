@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 /**
  * kerncap.hpp — HSA interception data structures and API table wrappers
  *

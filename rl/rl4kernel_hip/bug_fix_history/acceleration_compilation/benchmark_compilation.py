@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 HIP 编译优化策略性能对比测试
 测试不同优化方案的编译时间、文件大小、运行性能

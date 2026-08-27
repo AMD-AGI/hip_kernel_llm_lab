@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 
 export HCC_AMDGPU_TARGET="${HCC_AMDGPU_TARGET:-gfx942}"
 export AMDGPU_TARGETS="${AMDGPU_TARGETS:-$HCC_AMDGPU_TARGET}"

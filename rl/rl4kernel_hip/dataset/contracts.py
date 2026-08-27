@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Shared optimization contract helpers for dataset, launch, and reward code.
 
 This module is intentionally small and side-effect free. It centralizes the

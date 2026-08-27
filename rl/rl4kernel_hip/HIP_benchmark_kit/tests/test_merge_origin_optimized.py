@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 import json
 
 from HIP_benchmark_kit.eval.merge_origin_optimized_eval import build_pair_plan, main, validate_non_overlapping_trace

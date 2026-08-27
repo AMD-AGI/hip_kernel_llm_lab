@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 set -euo pipefail
 
 # Disable host/GPU core dump artifacts (core.*, gpucore.*) in cwd.

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # reward.py — 使用 sandbox.client_adapter 通过 /run_code 执行并解析 EvalResponse 计分
 from __future__ import annotations
 import os

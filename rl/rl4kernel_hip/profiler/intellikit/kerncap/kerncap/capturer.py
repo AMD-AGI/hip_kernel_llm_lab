@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Capture orchestrator — runs an application under libkerncap.so.
 
 Sets up the environment, launches the application under LD_PRELOAD

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 Script to view samples from a parquet file with human-readable formatting.
 Usage: python view_parquet_sample.py [parquet_file] [num_samples]

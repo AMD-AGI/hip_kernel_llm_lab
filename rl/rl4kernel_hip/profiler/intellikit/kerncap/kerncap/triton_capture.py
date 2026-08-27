@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Python-level capture for Triton kernels.
 
 Intercepts Triton kernel calls at the Python level to capture arguments

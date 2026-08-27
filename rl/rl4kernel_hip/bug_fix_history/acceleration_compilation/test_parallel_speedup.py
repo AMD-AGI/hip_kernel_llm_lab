@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 多文件并行编译提速效果测试
 基于 hip_ref_hip_8825_EDMLoss.hip 和 hip_ref_hip_969_PITF_Loss.hip

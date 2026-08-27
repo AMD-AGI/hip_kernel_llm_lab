@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 Kernel Novelty Tracker
 用于训练过程中观测 kernel 重复性，记录实际代码和统计指标

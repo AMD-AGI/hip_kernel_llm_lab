@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Standalone reproducer generator.
 
 Takes captured kernel data and located source, generates a self-contained

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # sf_mock_server.py — 简化版本，只保留 EvalResponse 定义的字段
 import argparse
 import json

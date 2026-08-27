@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # Start the batch-parallel HIP kernel evaluation server.
 #
 # Override any setting below by exporting it before running this script, e.g.

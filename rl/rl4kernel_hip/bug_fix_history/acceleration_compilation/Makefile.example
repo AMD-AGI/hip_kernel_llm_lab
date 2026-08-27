@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # HIP Kernel 优化编译 Makefile
 # 整合了所有优化策略：ccache、并行编译、增量编译、LTO等
 

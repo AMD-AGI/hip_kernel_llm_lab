@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """rocprofv3 --kernel-trace --stats wrapper and CSV parser.
 
 Profiles an application and returns a ranked list of kernel execution stats.

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 CONTAINER_NAME="kernelrl"
 DOCKER_IMAGE="verl-0.5:1013"
 # DOCKER_IMAGE="verl-rocm-0.4.6:1106"

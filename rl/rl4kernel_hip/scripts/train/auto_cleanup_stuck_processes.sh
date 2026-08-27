@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # 自动清理卡住的HIP编译和评估进程
 # 用法: 
 #   1. 在tmux中后台运行: ./auto_cleanup_stuck_processes.sh &

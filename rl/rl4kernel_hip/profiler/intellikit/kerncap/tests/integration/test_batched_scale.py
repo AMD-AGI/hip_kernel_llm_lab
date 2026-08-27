@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Integration test for a batched kernel with embedded device pointers.
 
 This test verifies the full pipeline for kernels with T** (double-pointer)

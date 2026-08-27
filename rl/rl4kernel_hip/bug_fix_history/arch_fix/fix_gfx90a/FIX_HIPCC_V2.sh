@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # 修复 hipcc/clang++ 的 amdgpu-target 参数问题 V2
 # 
 # 问题：hipcc.original 内部使用 system() 执行命令，生成畸形参数

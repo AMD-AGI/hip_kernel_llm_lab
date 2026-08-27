@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Kernel source locator for HIP and Triton kernels.
 
 Given a kernel name, finds the source code in a project directory tree.

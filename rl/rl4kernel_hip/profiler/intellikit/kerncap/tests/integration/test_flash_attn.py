@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Docker-based integration test: Flash Attention 2 Triton backend.
 
 Validates kerncap's full pipeline against the Flash Attention 2 Triton

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # 修复 hipcc 的 amdgpu-target 参数问题
 # 这个脚本需要 root 权限运行
 

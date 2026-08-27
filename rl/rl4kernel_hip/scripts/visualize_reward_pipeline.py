@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """Generate a pipeline diagram for correct_speedup_copy_penalty reward mode."""
 import matplotlib
 matplotlib.use('Agg')

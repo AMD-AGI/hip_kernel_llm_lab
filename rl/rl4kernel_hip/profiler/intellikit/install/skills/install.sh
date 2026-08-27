@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 # IntelliKit Agent Skills Installer
 # Downloads each tool's SKILL.md into a skills dir. Use --target to pick agent (agents/codex/cursor/claude/github).
 # Usage: curl -sSL <install script URL> | bash -s -- [OPTIONS]

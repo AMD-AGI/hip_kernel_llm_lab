@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026, Advanced Micro Devices, Inc. All rights reserved.
+
 """
 ☆ 预编译头文件 (PCH) 优化版本
 基于 opt_compile_hip_v1.py，增加预编译头文件支持
